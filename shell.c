@@ -102,7 +102,42 @@ void print_curr_dir() {
 		perror("getcwd() error");
 }
 
+//returns if the str contains any special char
+//if str is not valid it returns -2
+// no special char found -1
+//if a special char is found, it returns pos * 10 + type
+// type is 1 for ||, 2 for &&, 3 for <, 4 for >, 5 for |
+int tokenStr(char* str)
+{
+	char* nextChar;
+	int difference;
+	printf("ok");
+	for (nextChar = str; *nextChar != '\0' 
+	&& *nextChar !='<' && *nextChar != '>' 
+	&& *nextChar != '|' && *nextChar != '&'; 
+	++nextChar) 
+	{}
 
+	if (*nextChar == '\0') 
+		return -1;
+
+	difference = nextChar - str;
+
+	if (*nextChar == '|' && *(nextChar+1) == '|')
+		return difference*10 + 1;
+	if (*nextChar == '|' && *(nextChar+1) != '|')
+		return difference*10 + 5;
+	if (*nextChar == '&' && *(nextChar + 1) == '&')
+		return difference*10 + 2;
+	if (*nextChar == '&' && *(nextChar + 1) != '&')
+		return -2;
+	if (*nextChar == '<')
+		return difference * 10 + 3;
+	if (*nextChar == '>')
+		return difference * 10 + 4;
+	
+	return -2;
+}
 
 
 // read input from stdin ----- not working now
@@ -110,7 +145,17 @@ void read_input(char* input) {
 	char* temp = readline("$ ");
 	if (strlen(temp) > 0)
 		strcpy(input, temp);
+	char* inputPtr;
+	int token;
+
+	inputPtr = input;
+	token = tokenStr(inputPtr);
+	printf("%d", token);
 }
+
+	//printf("%s\n", input);
+	
+	
 
 
 
