@@ -19,7 +19,7 @@ struct Trie {
 typedef struct Trie* TrieNode;
 
 TrieNode get_new_node() {
-	TrieNode node = (TrieNode)malloc(sizeof(TrieNode));
+	TrieNode node = (TrieNode)malloc(sizeof(Trie));
 	node->is_leaf = false;
 	memset(node->children, 0, sizeof(node->children));
 	return node;
@@ -65,7 +65,7 @@ typedef struct History* HistoryLine;
 HistoryLine first_line, last_line;
 
 HistoryLine get_new_line() {
-	HistoryLine line = (HistoryLine)malloc((sizeof(HistoryLine)));
+	HistoryLine line = (HistoryLine)malloc((sizeof(History)));
 	memset(line->command, 0, sizeof(line->command));
 	return line;
 }
@@ -114,6 +114,7 @@ int main() {
 	char input[MAX_INPUT_LENGTH];
 	while(true) {
 		print_curr_dir();
+		break;
 		read_input(input);
 	}
 
