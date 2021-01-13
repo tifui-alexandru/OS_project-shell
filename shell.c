@@ -3,13 +3,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <readline/readline.h>
 
 // define constants
 #define MAX_INPUT_LENGTH 1024
 #define SIGMA 256
 
 // trie implementation
-
 struct Trie {
 	bool is_leaf;
 	struct Trie* children[SIGMA];
@@ -54,6 +54,9 @@ bool search(char* str) {
 }
 
 
+
+
+
 // mantain history of commands
 struct History {
 	char command[MAX_INPUT_LENGTH];
@@ -86,22 +89,39 @@ void add_command(char* str) {
 	free(line);
 }
 
+
+
+
 // write the current path in the commandline
 void print_curr_dir() {
 	char cwd[SIGMA];
 
 	if (getcwd(cwd, sizeof(cwd))) 
-		printf("shell~%s\n", cwd);
+		printf("%s\n", cwd);
 	else 
 		perror("getcwd() error");
 }
 
+
+
+
 // read input from stdin ----- not working now
 void read_input(char* input) {
-	// char* temp = readline();
-	// if (strlen(temp) > 0)
-	// 	strcpy(input, temp);
+	char* temp = readline("$ ");
+	if (strlen(temp) > 0)
+		strcpy(input, temp);
 }
+
+
+
+enum CommandType {
+	logic_expression,
+	pipe_line,
+	redirect_io,
+	regular
+};
+
+
 
 // initialize everything before starting the program
 void init() {
@@ -114,7 +134,6 @@ int main() {
 	char input[MAX_INPUT_LENGTH];
 	while(true) {
 		print_curr_dir();
-		break;
 		read_input(input);
 	}
 
