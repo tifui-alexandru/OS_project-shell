@@ -112,33 +112,33 @@ void print_curr_dir() {
 // no special char found -1
 //if a special char is found, it returns pos * 10 + type
 // type is 1 for ||, 2 for &&, 3 for <, 4 for >, 5 for |
-int tokenStr(char* str)
+int token_str(char* str)
 {
-	char* nextChar;
+	char* next_char;
 	int difference;
 	printf("ok");
-	for (nextChar = str; *nextChar != '\0' 
-	&& *nextChar !='<' && *nextChar != '>' 
-	&& *nextChar != '|' && *nextChar != '&'; 
-	++nextChar) 
+	for (next_char = str; *next_char != '\0' 
+	&& *next_char !='<' && *next_char != '>' 
+	&& *next_char != '|' && *next_char != '&'; 
+	++next_char) 
 	{}
 
-	if (*nextChar == '\0') 
+	if (*next_char == '\0') 
 		return -1;
 
-	difference = nextChar - str;
+	difference = next_char - str + 1;
 
-	if (*nextChar == '|' && *(nextChar+1) == '|')
-		return difference*10 + 1;
-	if (*nextChar == '|' && *(nextChar+1) != '|')
+	if (*next_char == '|' && *(next_char+1) == '|')
+		return (difference+1)*10 + 1;
+	if (*next_char == '|' && *(next_char+1) != '|')
 		return difference*10 + 5;
-	if (*nextChar == '&' && *(nextChar + 1) == '&')
-		return difference*10 + 2;
-	if (*nextChar == '&' && *(nextChar + 1) != '&')
+	if (*next_char == '&' && *(next_char + 1) == '&')
+		return (difference+1)*10 + 2;
+	if (*next_char == '&' && *(next_char + 1) != '&')
 		return -2;
-	if (*nextChar == '<')
+	if (*next_char == '<')
 		return difference * 10 + 3;
-	if (*nextChar == '>')
+	if (*next_char == '>')
 		return difference * 10 + 4;
 	
 	return -2;
@@ -148,14 +148,58 @@ int tokenStr(char* str)
 // read input from stdin ----- not working now
 void read_input(char* input) {
 	char* temp = readline("$ ");
+	
+
 	if (strlen(temp) > 0)
 		strcpy(input, temp);
-	char* inputPtr;
-	int token;
+	char* input_ptr;
+	int token = 1, type;
 
-	inputPtr = input;
-	token = tokenStr(inputPtr);
-	printf("%d", token);
+	input_ptr = input;
+	while (token >= 0)
+	{
+		token = token_str(input_ptr);
+		if (token == -1)
+		{
+			//simple command, no < > & operators
+		}
+		else if (token == -2)
+		{
+			//invalid command
+		}
+		else 
+		{
+			type = token % 10;
+			token = token / 10;
+			// ||
+			if (type == 1)
+			{
+
+			}
+			// &&
+			if (type == 2)
+			{
+
+			}
+			// <
+			if (type == 3)
+			{
+
+			}
+			// >
+			if (type == 4)
+			{
+
+			}
+			// |
+			if (type == 5)
+			{
+
+			}
+		}
+
+	}
+
 }
 
 	//printf("%s\n", input);
