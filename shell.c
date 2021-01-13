@@ -13,6 +13,7 @@
 struct Trie {
 	bool is_leaf;
 	struct Trie* children[SIGMA];
+	int min_arg, max_arg;
 };
 
 // #define children (children + 128) // so that one can access children[-128]
@@ -21,16 +22,18 @@ typedef struct Trie* TrieNode;
 TrieNode get_new_node() {
 	TrieNode node = (TrieNode)malloc(sizeof(struct Trie));
 	node->is_leaf = false;
+	node->min_arg = 0;
+	node->max_arg = 0;
 	memset(node->children, 0, sizeof(node->children));
 	return node;
 }
 
 TrieNode trie_root;
 
-void insert(char* str) {
+void insert(char* str, int v_min_arg, int v_max_arg) {
 	TrieNode node = trie_root;
 
-	for (char* letter = str; letter; ++letter) {
+	for (char* letter = str; *letter; ++letter) {
 		if (node->children[*letter] == NULL) 
 			node->children[*letter] = get_new_node();
 
@@ -38,12 +41,14 @@ void insert(char* str) {
 	}
 
 	node->is_leaf = true;
+	node->min_arg = v_min_arg;
+	node->max_arg = v_max_arg;
 }
 
 bool search(char* str) {
 	TrieNode node = trie_root;
 
-	for (char* letter = str; letter; ++letter) {
+	for (char* letter = str; *letter; ++letter) {
 		if (node->children[*letter] == NULL) 
 			return false;
 
@@ -167,10 +172,35 @@ enum CommandType {
 };
 
 
+// store the possible commands
+void populate_trie() {
+	trie_root = get_new_node();
+
+	FILE* fin = fopen("commands.txt", "r");
+
+	char chunk[MAX_INPUT_LENGTH + 10], command_text[MAX_INPUT_LENGTH];
+	int command_min_arg, command_max_arg;
+
+	while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+        char* token = strtok(chunk, " \n");
+        strcpy(command_text, token);
+
+        token = strtok(NULL, " \n");
+        command_min_arg = atoi(token);
+
+        token = strtok(NULL, " \n");
+        command_max_arg = atoi(token);
+
+        insert(command_text, command_min_arg, command_max_arg);
+    }
+
+	fclose(fin);
+}
+
 
 // initialize everything before starting the program
 void init() {
-	trie_root = get_new_node();
+	populate_trie();
 }
 
 int main() {

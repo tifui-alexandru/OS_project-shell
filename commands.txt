@@ -1,0 +1,15 @@
+ls 0 0
+echo 1 -1
+touch 1 -1
+mkdir 1 -1
+grep 2 -1
+pwd 0 0
+cd 1 1
+mv 2 2
+rm 1 -1
+rmdir 1 -1
+locate 1 -1
+cat 1 -1
+history 0 0
+clear 0 0
+cp 2 2
