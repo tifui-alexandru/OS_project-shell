@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <readline/readline.h>
+#include <dirent.h>
 
 // define constants
 #define MAX_INPUT_LENGTH 1024
@@ -14,6 +15,11 @@
 #define MAX_PATH_LENGTH 1024
 #define MAX_COMMANDS_HISTORY 20
 #define MAX_NUMBER_ARGUMENTS 5
+
+// define colours
+#define GREEN "\x1b[92m"
+#define BLUE "\x1b[94m"
+#define CYAN "\x1b[96m"
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
@@ -271,6 +277,10 @@ void funct_cd(char *path)
 {
 	printf("ok");
 }
+
+void funct_ls(char** args) {
+	
+}	
 
 
 void find_command(char* command){
