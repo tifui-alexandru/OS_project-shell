@@ -310,7 +310,25 @@ void funct_ls(char** args) {
 
 void funct_echo(char** args) {
 	for (int i = 0; args[i][0] != '\0'; ++i) 
-		printf("%s\n", args[i]);
+		printf("%s ", args[i]);
+}
+
+void funct_touch(char** args) {
+	for (int i = 0; args[i][0] != '\0'; ++i) { 
+		FILE* file = fopen(args[i], "w");
+		fclose(file);
+	}
+}
+
+void funct_mkdir(char** args) {
+	for (int i = 0; args[i][0] != '\0'; ++i) { 
+		if (mkdir(args[i], 0777) == -1)
+			perror("Error mkdir");
+	}
+}
+
+void funct_grep(char** args) {
+
 }
 
 void find_command(char* command){
@@ -334,6 +352,12 @@ void find_command(char* command){
 		funct_ls(NULL);
 	else if (command_idx == 1)
 		funct_echo(arguments);
+	else if (command_idx == 2)
+		funct_touch(arguments);
+	else if (command_idx == 3)
+		funct_mkdir(arguments);
+	else if (command_idx == 4)
+		funct_grep(args);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
