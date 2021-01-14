@@ -108,8 +108,7 @@ void add_command(char* str) {
 // no special char found -1
 //if a special char is found, it returns pos * 10 + type
 // type is 1 for ||, 2 for &&, 3 for <, 4 for >, 5 for |
-int token_str(char* str)
-{
+int token_str(char* str){
 	char* next_char;
 	int difference;
 	for (next_char = str; *next_char != '\0' 
@@ -139,8 +138,8 @@ int token_str(char* str)
 	return -2;
 }
 
-void copy_str(char* dest, char* src, int length)
-{
+void copy_str(char* dest, char* src, int length){
+
 	for (int i = 0; i < length; i++)
 	{
 		dest[i] = src[i];
@@ -149,8 +148,8 @@ void copy_str(char* dest, char* src, int length)
 }
 
 //returns if it can find the first word in src
-bool get_command_name(char* dest, char* src)
-{
+bool get_command_name(char* dest, char* src){
+
 	int dest_index, src_index, src_size;
 	dest_index = 0;
 	src_index = 0;
@@ -254,6 +253,27 @@ void find_command(char* command){
 
 	free_arguments_matrix(arguments);
 	free(command_name);
+}
+
+void funct_rm(char** args){
+	char* file_path = malloc(
+		MAX_PATH_LENGTH* sizeof(*file_path));
+
+	strcpy(file_path, cwd);
+	strcat(file_path, "/");
+	strcat(file_path, args[0]);
+
+	int fd;
+	//check if we can open file
+	fd = open(file_path);
+	if (fd < 0){
+		perror("File does not exist");
+		free(file_path);
+		return;
+	}
+	close(fd);
+
+	free(file_path);
 }
 
 
