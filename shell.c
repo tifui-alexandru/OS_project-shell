@@ -259,6 +259,7 @@ void find_command(char* command){
 }
 
 void funct_rm(char** args){
+
 	char* file_path = malloc(
 		MAX_PATH_LENGTH* sizeof(*file_path));
 
@@ -266,17 +267,23 @@ void funct_rm(char** args){
 	strcat(file_path, "/");
 	strcat(file_path, args[0]);
 
-	printf("%s\n\n", file_path);
+	printf("\n\n%s\n\n", file_path);
 	int fd;
 	//check if we can open file
 	fd = open(file_path, O_RDONLY);
 	if (fd < 0){
-		perror("File does not exist");
+		printf("File does not exist");
 		free(file_path);
 		return;
 	}
 	close(fd);
 	free(file_path);
+	if (remove(file_path)){
+		printf("An error occured while deleting the file\n");
+		return;
+	}
+	printf("Succes\n");
+	return;
 }
 
 
@@ -422,6 +429,7 @@ void init() {
 
 int main() {
 	init();
+	print_curr_dir();
 	char** args;
 	args = malloc(1*sizeof(*args));
 	args[0] = malloc(1024*sizeof(*args[0]));
