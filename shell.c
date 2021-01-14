@@ -83,6 +83,9 @@ int valid_command(char* str) {
 	if (str == NULL || str == "")
 		return false;
 
+	char* str_copy = malloc(strlen(str) * sizeof(*str_copy));
+	strcpy(str_copy, str);
+
 	char* token = strtok(str, " \n");
 	int command_min_arg, command_max_arg;
 	int idx_command = search(token, &command_min_arg, &command_max_arg);
@@ -99,6 +102,9 @@ int valid_command(char* str) {
 
 		++no_args;
 	}
+
+	strcpy(str, str_copy);
+	free(str_copy);
 
 	if (command_min_arg > no_args)
 		return -1;
@@ -302,6 +308,10 @@ void funct_ls(char** args) {
 	printf("%s", WHITE);
 }	
 
+void funct_echo(char** args) {
+	for (int i = 0; args[i][0] != '\0'; ++i) 
+		printf("%s\n", args[i]);
+}
 
 void find_command(char* command){
 	int command_idx = valid_command(command);
@@ -322,6 +332,8 @@ void find_command(char* command){
 	
 	if (command_idx == 0)
 		funct_ls(NULL);
+	else if (command_idx == 1)
+		funct_echo(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
