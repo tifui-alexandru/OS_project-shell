@@ -194,7 +194,7 @@ int get_arguments(char** arguments, char* command){
 			command_ptr ++;
 		}
 	}
-	arguments[args_counter+1][0] = '\0';
+	arguments[args_counter + 1][0] = '\0';
 	return args_counter + 1;
 }
 
