@@ -20,7 +20,7 @@ char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
 
 // trie implementation
 struct Trie {
-	bool is_leaf;
+	int index; // -1 if it is not the end of a command
 	struct Trie* children[SIGMA];
 	int min_arg, max_arg;
 };
@@ -30,7 +30,7 @@ typedef struct Trie* TrieNode;
 
 TrieNode get_new_node() {
 	TrieNode node = (TrieNode)malloc(sizeof(struct Trie));
-	node->is_leaf = false;
+	node->index = -1;
 	node->min_arg = 0;
 	node->max_arg = 0;
 	memset(node->children, 0, sizeof(node->children));
@@ -39,7 +39,7 @@ TrieNode get_new_node() {
 
 TrieNode trie_root;
 
-void insert(char* str, int v_min_arg, int v_max_arg) {
+void insert(char* str, int v_min_arg, int v_max_arg, int idx_command) {
 	TrieNode node = trie_root;
 
 	for (char* letter = str; *letter; ++letter) {
@@ -49,12 +49,12 @@ void insert(char* str, int v_min_arg, int v_max_arg) {
 		node = node->children[*letter];
 	}
 
-	node->is_leaf = true;
+	node->index = idx_command;
 	node->min_arg = v_min_arg;
 	node->max_arg = v_max_arg;
 }
 
-bool search(char* str) {
+int search(char* str, int* v_min_arg, int* v_max_arg) {
 	TrieNode node = trie_root;
 
 	for (char* letter = str; *letter; ++letter) {
@@ -64,10 +64,43 @@ bool search(char* str) {
 		node = node->children[*letter];
 	}
 
-	return node->is_leaf;
+	*v_min_arg = node->min_arg;
+	*v_max_arg = node->max_arg;
+	return node->index;
 }
 
+// validate a command
+// returns the command index if it is a valid command
+// returns -1 otherwise
+int valid_command(char* str) {
+	if (str == NULL || str == "")
+		return false;
 
+	char* token = strtok(str, " \n");
+	int command_min_arg, command_max_arg;
+	int idx_command = search(token, &command_min_arg, &command_max_arg);
+
+	if (idx_command == -1)
+		return -1;
+
+	int no_args = 0;
+
+	while (true) {
+		token = strtok(NULL, " \n");
+		if (token == NULL)
+			break;
+
+		++no_args;
+	}
+
+	if (command_min_arg > no_args)
+		return -1;
+
+	if (command_max_arg != -1 && command_max_arg < no_args)
+		return -1;
+
+	return idx_command;
+}
 
 
 
@@ -405,6 +438,8 @@ void populate_trie() {
 	char chunk[MAX_INPUT_LENGTH + 10], command_text[MAX_INPUT_LENGTH];
 	int command_min_arg, command_max_arg;
 
+	int idx_command = 0;
+
 	while(fgets(chunk, sizeof(chunk), fin) != NULL) {
         char* token = strtok(chunk, " \n");
         strcpy(command_text, token);
@@ -415,7 +450,9 @@ void populate_trie() {
         token = strtok(NULL, " \n");
         command_max_arg = atoi(token);
 
-        insert(command_text, command_min_arg, command_max_arg);
+        insert(command_text, command_min_arg, command_max_arg,idx_command);
+
+    	++idx_command;
     }
 
 	fclose(fin);
