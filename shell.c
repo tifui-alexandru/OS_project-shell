@@ -10,6 +10,7 @@
 #define SIGMA 256
 #define MAX_PATH_LENGTH 1024
 #define MAX_COMMANDS_HISTORY 20
+#define MAX_NUMBER_ARGUMENTS 5
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
@@ -99,6 +100,8 @@ void add_command(char* str) {
 	free(line);
 }
 
+// -------------------------- UTILS ------------------------------
+
 
 //returns if the str contains any special char
 //if str is not valid it returns -2
@@ -146,7 +149,7 @@ void copy_str(char* dest, char* src, int length)
 }
 
 //returns if it can find the first word in src
-bool get_first_word(char* dest, char* src)
+bool get_command_name(char* dest, char* src)
 {
 	int dest_index, src_index, src_size;
 	dest_index = 0;
@@ -167,6 +170,58 @@ bool get_first_word(char* dest, char* src)
 	return true;
 }
 
+int get_arguments(char** arguments, char* command){
+	int command_ptr = 0;
+	int command_size = strlen(command);
+	int args_counter = -1;
+
+	//remove the first word
+	while (command[command_ptr] == ' ' && command_ptr < command_size)
+		++command_ptr;
+	while (command[command_ptr] != ' ' && command_ptr < command_size)
+		++command_ptr;
+	while (command[command_ptr] == ' ' && command_ptr < command_size)
+		++command_ptr;
+
+	while (command_ptr < command_size){
+		int arg_ptr = -1;
+		args_counter++;
+		while (command[command_ptr] == ' ' && command_ptr < command_size)
+			command_ptr ++;
+		while (command[command_ptr] != ' ' && command_ptr < command_size){
+			arg_ptr ++;
+			arguments[args_counter][arg_ptr] = command[command_ptr];
+			command_ptr ++;
+		}
+	}
+	arguments[args_counter+1][0] = '\0';
+	return args_counter + 1;
+}
+
+char** create_arguments_matrix()
+{
+	char** arguments;
+	arguments = malloc(MAX_NUMBER_ARGUMENTS * sizeof(*arguments));
+
+	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++)
+		arguments[i] = malloc(MAX_INPUT_LENGTH * sizeof(*(arguments[i])));
+	
+	return arguments;
+}
+
+void free_arguments_matrix(char** arguments)
+{
+	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++)
+		free(arguments[i]);
+	free(arguments);
+}
+
+// ---------------------------------------------------------------------------
+
+
+
+
+
 // write the current path in the commandline
 void print_curr_dir() {
 
@@ -177,13 +232,18 @@ void print_curr_dir() {
 }
 
 
-void find_command(char* command)
-{
+void find_command(char* command){
 
 	char* word = malloc(MAX_INPUT_LENGTH*sizeof(*word));
-	
-	get_first_word(word, command);
+	char** arguments;
+	int args_counter;
 
+	arguments = create_arguments_matrix();
+
+	get_command_name(word, command);
+	args_counter = get_arguments(arguments, command);
+	printf("%d\n", args_counter);
+	
 	if (strcmp(word, "pwd") == 0)
 	{
 		print_curr_dir();
@@ -192,16 +252,43 @@ void find_command(char* command)
 
 
 
+	free_arguments_matrix(arguments);
 	free(word);
 }
 
 
 // read input from stdin
 void read_input(char* input) {
-
-	char * command = malloc(MAX_INPUT_LENGTH*sizeof(*command));
-	char* temp = readline("$ ");
+	//to be able to read char by char and not put stdin in a buffer
 	
+
+	//printf("$ ");
+	char * command = malloc(MAX_INPUT_LENGTH*sizeof(*command));
+	//char * temp = malloc(MAX_INPUT_LENGTH*sizeof(*temp));
+	int temp_index = -1;
+	char c;
+
+	/*
+	system ("/bin/stty raw");
+	while ((int)(c = getc(stdin)) != 13)
+	{
+		temp_index++;
+		
+		if ((int) c == 27)
+		{
+			printf("comanda sus");
+		}
+		temp[temp_index] = c;
+		
+	}
+	++temp_index;
+	temp[temp_index] = '\0';
+	//revert changes
+	system ("/bin/stty cooked");
+	*/
+
+	char* temp=readline("$ ");
+
 	if (strlen(temp) > 0)
 		strcpy(input, temp);
 
@@ -265,6 +352,8 @@ void read_input(char* input) {
 		}
 
 	}
+	//free(temp);
+	free(command);
 
 }
 
