@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <readline/readline.h>
+#include <dirent.h>
 
 // define constants
 #define MAX_INPUT_LENGTH 1024
@@ -14,6 +15,12 @@
 #define MAX_PATH_LENGTH 1024
 #define MAX_COMMANDS_HISTORY 20
 #define MAX_NUMBER_ARGUMENTS 5
+
+// define colours
+#define GREEN "\x1b[92m"
+#define BLUE "\x1b[94m"
+#define CYAN "\x1b[96m"
+#define WHITE "\033[0m"
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
@@ -76,6 +83,9 @@ int valid_command(char* str) {
 	if (str == NULL || str == "")
 		return false;
 
+	char* str_copy = malloc(strlen(str) * sizeof(*str_copy));
+	strcpy(str_copy, str);
+
 	char* token = strtok(str, " \n");
 	int command_min_arg, command_max_arg;
 	int idx_command = search(token, &command_min_arg, &command_max_arg);
@@ -92,6 +102,9 @@ int valid_command(char* str) {
 
 		++no_args;
 	}
+
+	strcpy(str, str_copy);
+	free(str_copy);
 
 	if (command_min_arg > no_args)
 		return -1;
@@ -272,8 +285,40 @@ void funct_cd(char *path)
 	printf("ok");
 }
 
+void funct_ls(char** args) {
+	struct dirent** namelist;
+	int no_files = scandir(".", &namelist, NULL, alphasort);
+
+	if (no_files == -1) {
+		perror("Error ls");
+		return;
+	}
+
+	for (int i = 0; i < no_files; ++i) {
+		if (namelist[i]->d_name[0] != '.') {
+			if (namelist[i]->d_type == DT_REG)
+				printf("%s%s\n", BLUE, namelist[i]->d_name);
+			else if (namelist[i]->d_type == DT_DIR)
+				printf("%s%s\n", GREEN, namelist[i]->d_name);
+			else
+				printf("%s%s\n", CYAN, namelist[i]->d_name);
+		}
+	}
+
+	printf("%s", WHITE);
+}	
+
+void funct_echo(char** args) {
+	for (int i = 0; args[i][0] != '\0'; ++i) 
+		printf("%s\n", args[i]);
+}
 
 void find_command(char* command){
+	int command_idx = valid_command(command);
+	if (command_idx == -1) {
+		printf("Invalid command\n");
+		return;
+	}
 
 	char* command_name = malloc(MAX_INPUT_LENGTH*sizeof(*command_name));
 	char** arguments;
@@ -283,9 +328,12 @@ void find_command(char* command){
 
 	get_command_name(command_name, command);
 	args_counter = get_arguments(arguments, command);
-	printf("%d\n", args_counter);
+	// printf("%d\n", args_counter);
 	
-		
+	if (command_idx == 0)
+		funct_ls(NULL);
+	else if (command_idx == 1)
+		funct_echo(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
