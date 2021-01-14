@@ -20,6 +20,7 @@
 #define GREEN "\x1b[92m"
 #define BLUE "\x1b[94m"
 #define CYAN "\x1b[96m"
+#define WHITE "\033[0m"
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
@@ -279,11 +280,35 @@ void funct_cd(char *path)
 }
 
 void funct_ls(char** args) {
-	
+	struct dirent** namelist;
+	int no_files = scandir(".", &namelist, NULL, alphasort);
+
+	if (no_files == -1) {
+		perror("Error ls");
+		return;
+	}
+
+	for (int i = 0; i < no_files; ++i) {
+		if (namelist[i]->d_name[0] != '.') {
+			if (namelist[i]->d_type == DT_REG)
+				printf("%s%s\n", BLUE, namelist[i]->d_name);
+			else if (namelist[i]->d_type == DT_DIR)
+				printf("%s%s\n", GREEN, namelist[i]->d_name);
+			else
+				printf("%s%s\n", CYAN, namelist[i]->d_name);
+		}
+	}
+
+	printf("%s", WHITE);
 }	
 
 
 void find_command(char* command){
+	int command_idx = valid_command(command);
+	if (command_idx == -1) {
+		printf("Invalid command\n");
+		return;
+	}
 
 	char* command_name = malloc(MAX_INPUT_LENGTH*sizeof(*command_name));
 	char** arguments;
@@ -293,9 +318,10 @@ void find_command(char* command){
 
 	get_command_name(command_name, command);
 	args_counter = get_arguments(arguments, command);
-	printf("%d\n", args_counter);
+	// printf("%d\n", args_counter);
 	
-		
+	if (command_idx == 0)
+		funct_ls(NULL);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
