@@ -232,28 +232,40 @@ void print_curr_dir() {
 }
 
 
+void funct_cd(char *path)
+{
+	printf("ok");
+}
+
+
 void find_command(char* command){
 
-	char* word = malloc(MAX_INPUT_LENGTH*sizeof(*word));
+	char* command_name = malloc(MAX_INPUT_LENGTH*sizeof(*command_name));
 	char** arguments;
 	int args_counter;
 
-	arguments = create_arguments_matrix();
+	arguments = create_arguments_matrix(); 
 
-	get_command_name(word, command);
+	get_command_name(command_name, command);
 	args_counter = get_arguments(arguments, command);
 	printf("%d\n", args_counter);
 	
-	if (strcmp(word, "pwd") == 0)
-	{
+	if (strcmp(command_name, "pwd") == 0){
 		print_curr_dir();
 		printf("\n");
+	}
+
+	if (strcmp(command_name, "ls") == 0){
+		if (args_counter != 1){
+			printf("Comanda invalida\n"); 
+			return;
+		}
 	}
 
 
 
 	free_arguments_matrix(arguments);
-	free(word);
+	free(command_name);
 }
 
 
@@ -299,7 +311,7 @@ void read_input(char* input) {
 	while (token >= 0)
 	{
 		token = token_str(input_ptr);
-
+	
 		if (token == -1)
 		{
 			copy_str(command, input_ptr, strlen(input_ptr));
