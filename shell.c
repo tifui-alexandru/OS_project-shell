@@ -172,7 +172,8 @@ bool get_command_name(char* dest, char* src)
 
 int get_arguments(char** arguments, char* command){
 	int command_ptr = 0;
-	int command_size = strlen(nd){
+	int command_size = strlen(command);
+	int args_counter = -1;
 
 	//remove the first word
 	while (command[command_ptr] == ' ' && command_ptr < command_size)
@@ -249,7 +250,7 @@ void find_command(char* command){
 	args_counter = get_arguments(arguments, command);
 	printf("%d\n", args_counter);
 	
-
+		
 
 	free_arguments_matrix(arguments);
 	free(command_name);
