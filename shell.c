@@ -8,6 +8,11 @@
 // define constants
 #define MAX_INPUT_LENGTH 1024
 #define SIGMA 256
+#define MAX_PATH_LENGTH 1024
+#define MAX_COMMANDS_HISTORY 20
+
+char cwd[MAX_PATH_LENGTH];
+char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
 
 // trie implementation
 struct Trie {
@@ -95,18 +100,6 @@ void add_command(char* str) {
 }
 
 
-
-
-// write the current path in the commandline
-void print_curr_dir() {
-	char cwd[SIGMA];
-
-	if (getcwd(cwd, sizeof(cwd))) 
-		printf("%s\n", cwd);
-	else 
-		perror("getcwd() error");
-}
-
 //returns if the str contains any special char
 //if str is not valid it returns -2
 // no special char found -1
@@ -116,7 +109,6 @@ int token_str(char* str)
 {
 	char* next_char;
 	int difference;
-	printf("ok");
 	for (next_char = str; *next_char != '\0' 
 	&& *next_char !='<' && *next_char != '>' 
 	&& *next_char != '|' && *next_char != '&'; 
@@ -126,14 +118,14 @@ int token_str(char* str)
 	if (*next_char == '\0') 
 		return -1;
 
-	difference = next_char - str + 1;
+	difference = next_char - str;
 
 	if (*next_char == '|' && *(next_char+1) == '|')
-		return (difference+1)*10 + 1;
+		return (difference)*10 + 1;
 	if (*next_char == '|' && *(next_char+1) != '|')
 		return difference*10 + 5;
 	if (*next_char == '&' && *(next_char + 1) == '&')
-		return (difference+1)*10 + 2;
+		return (difference)*10 + 2;
 	if (*next_char == '&' && *(next_char + 1) != '&')
 		return -2;
 	if (*next_char == '<')
@@ -144,47 +136,121 @@ int token_str(char* str)
 	return -2;
 }
 
+void copy_str(char* dest, char* src, int length)
+{
+	for (int i = 0; i < length; i++)
+	{
+		dest[i] = src[i];
+	}
+	dest[length] = '\0';
+}
 
-// read input from stdin ----- not working now
+//returns if it can find the first word in src
+bool get_first_word(char* dest, char* src)
+{
+	int dest_index, src_index, src_size;
+	dest_index = 0;
+	src_index = 0;
+	src_size = strlen(src);
+	
+	for (src_index = 0; src[src_index] == ' ' && src_index < src_size; ++src_index){}
+	
+	if (src_index == src_size)
+		return false;
+
+	for (; src[src_index] != ' ' && src_index < src_size; ++src_index)
+	{
+		dest[dest_index] = src[src_index];
+		++dest_index;
+	}
+	dest[dest_index] = '\0';
+	return true;
+}
+
+// write the current path in the commandline
+void print_curr_dir() {
+
+	if (getcwd(cwd, sizeof(cwd))) 
+		printf("%s", cwd);
+	else 
+		perror("getcwd() error");
+}
+
+
+void find_command(char* command)
+{
+
+	char* word = malloc(MAX_INPUT_LENGTH*sizeof(*word));
+	
+	get_first_word(word, command);
+
+	if (strcmp(word, "pwd") == 0)
+	{
+		print_curr_dir();
+		printf("\n");
+	}
+
+
+
+	free(word);
+}
+
+
+// read input from stdin
 void read_input(char* input) {
+
+	char * command = malloc(MAX_INPUT_LENGTH*sizeof(*command));
 	char* temp = readline("$ ");
 	
-
 	if (strlen(temp) > 0)
 		strcpy(input, temp);
+
 	char* input_ptr;
 	int token = 1, type;
-
 	input_ptr = input;
+
 	while (token >= 0)
 	{
 		token = token_str(input_ptr);
+
 		if (token == -1)
 		{
-			//simple command, no < > & operators
+			copy_str(command, input_ptr, strlen(input_ptr));
+			find_command(command);
+			//find what command is and call it.
+			break;
 		}
 		else if (token == -2)
 		{
+			printf("Comanda invalida\n");
 			//invalid command
 		}
 		else 
 		{
 			type = token % 10;
 			token = token / 10;
+			copy_str(command, input_ptr, token);
+			input_ptr += token;
 			// ||
 			if (type == 1)
 			{
-
+				int exit_status;
+				//call the function 
+				if (exit_status == 0)
+					break;
 			}
 			// &&
 			if (type == 2)
 			{
-
+				int exit_status;
+				//call the function
+				if (exit_status != 0)
+					break;
 			}
 			// <
 			if (type == 3)
 			{
-
+				
 			}
 			// >
 			if (type == 4)
@@ -201,11 +267,6 @@ void read_input(char* input) {
 	}
 
 }
-
-	//printf("%s\n", input);
-	
-	
-
 
 
 enum CommandType {
