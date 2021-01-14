@@ -1,3 +1,5 @@
+#include <dirent.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -228,6 +230,7 @@ int get_arguments(char** arguments, char* command){
 			arguments[args_counter][arg_ptr] = command[command_ptr];
 			command_ptr ++;
 		}
+		arguments[args_counter][arg_ptr + 1] = '\0';
 	}
 	arguments[args_counter + 1][0] = '\0';
 	return args_counter + 1;
@@ -291,8 +294,18 @@ void funct_rm(char** args){
 }
 
 void funct_rmdir(char** args){
-	
-
+	DIR* dir = opendir(args[0]);
+	if (dir){
+		//it exists
+		closedir(dir);
+		rmdir(args[0]);
+	}
+	else if (ENONET == errno){
+		printf("Directory does not exits\n");
+	}
+	else{
+		printf("An error occured\n");
+	}
 }
 
 
@@ -306,8 +319,12 @@ void find_command(char* command){
 
 	get_command_name(command_name, command);
 	args_counter = get_arguments(arguments, command);
+
+	printf("%s\n", command_name);
+
 	printf("%d\n", args_counter);
-	
+	for (int i = 0; i < args_counter; i++)
+		printf("%s\n", arguments[i]);
 		
 
 	free_arguments_matrix(arguments);
