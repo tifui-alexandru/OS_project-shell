@@ -1,7 +1,10 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
+#include <stdbool.h> 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <readline/readline.h>
 
@@ -263,16 +266,16 @@ void funct_rm(char** args){
 	strcat(file_path, "/");
 	strcat(file_path, args[0]);
 
+	printf("%s\n\n", file_path);
 	int fd;
 	//check if we can open file
-	fd = open(file_path);
+	fd = open(file_path, O_RDONLY);
 	if (fd < 0){
 		perror("File does not exist");
 		free(file_path);
 		return;
 	}
 	close(fd);
-
 	free(file_path);
 }
 
@@ -419,12 +422,21 @@ void init() {
 
 int main() {
 	init();
+	char** args;
+	args = malloc(1*sizeof(*args));
+	args[0] = malloc(1024*sizeof(*args[0]));
+	strcpy(args[0], "test.txt");
+
+	funct_rm(args);
 
 	char input[MAX_INPUT_LENGTH];
 	while(true) {
 		print_curr_dir();
 		read_input(input);
 	}
+
+	free(args[0]);
+	free(args);
 
 	return 0;
 }
