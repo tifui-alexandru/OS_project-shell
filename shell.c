@@ -273,6 +273,29 @@ void funct_cd(char *path)
 }
 
 
+void funct_rm(char** args){
+	int fd;
+	fd = open(args[0], O_RDONLY);
+	if (fd < 0){
+		printf("File does not exist");
+		return;
+	}
+	close(fd);
+
+	if (unlink(args[0])){
+		printf("An error occured while deleting the file\n");
+		return;
+	}
+	printf("Succes\n");
+	return;
+}
+
+void funct_rmdir(char** args){
+	
+
+}
+
+
 void find_command(char* command){
 
 	char* command_name = malloc(MAX_INPUT_LENGTH*sizeof(*command_name));
@@ -291,33 +314,7 @@ void find_command(char* command){
 	free(command_name);
 }
 
-void funct_rm(char** args){
 
-	char* file_path = malloc(
-		MAX_PATH_LENGTH* sizeof(*file_path));
-
-	strcpy(file_path, cwd);
-	strcat(file_path, "/");
-	strcat(file_path, args[0]);
-
-	printf("\n\n%s\n\n", file_path);
-	int fd;
-	//check if we can open file
-	fd = open(file_path, O_RDONLY);
-	if (fd < 0){
-		printf("File does not exist");
-		free(file_path);
-		return;
-	}
-	close(fd);
-	free(file_path);
-	if (remove(file_path)){
-		printf("An error occured while deleting the file\n");
-		return;
-	}
-	printf("Succes\n");
-	return;
-}
 
 
 // read input from stdin
@@ -465,23 +462,14 @@ void init() {
 }
 
 int main() {
+
 	init();
-	print_curr_dir();
-	char** args;
-	args = malloc(1*sizeof(*args));
-	args[0] = malloc(1024*sizeof(*args[0]));
-	strcpy(args[0], "test.txt");
-
-	funct_rm(args);
-
 	char input[MAX_INPUT_LENGTH];
 	while(true) {
 		print_curr_dir();
 		read_input(input);
 	}
 
-	free(args[0]);
-	free(args);
 
 	return 0;
 }
