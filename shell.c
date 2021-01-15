@@ -281,11 +281,7 @@ void print_curr_dir() {
 		perror("getcwd() error");
 }
 
-
-void funct_cd(char *path)
-{
-	printf("ok");
-}
+// implement commands
 
 void funct_ls(char** args) {
 	struct dirent** namelist;
@@ -368,6 +364,18 @@ void funct_grep(char** args) {
 	}
 }
 
+void funct_cd(char** args) {
+	if (chdir(args[0]) != 0)
+		perror("Error cd");
+}
+
+void funct_mv(char** args) {
+	char* src = args[0];
+	char* dst = args[1];
+
+	// to be done	
+}
+
 void find_command(char* command){
 	int command_idx = valid_command(command);
 	if (command_idx == -1) {
@@ -375,7 +383,7 @@ void find_command(char* command){
 		return;
 	}
 
-	char* command_name = malloc(MAX_INPUT_LENGTH*sizeof(*command_name));
+	char* command_name = malloc(MAX_INPUT_LENGTH * sizeof(*command_name));
 	char** arguments;
 	int args_counter;
 
@@ -395,6 +403,10 @@ void find_command(char* command){
 		funct_mkdir(arguments);
 	else if (command_idx == 4)
 		funct_grep(arguments);
+	else if (command_idx == 6)
+		funct_cd(arguments);
+	else if (command_idx == 7)
+		funct_mv(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
