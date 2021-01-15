@@ -28,6 +28,7 @@
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
+int exit_status;
 
 // trie implementation
 struct Trie {
@@ -319,6 +320,8 @@ void print_curr_dir() {
 // implement commands
 
 void funct_ls(char** args) {
+	exit_status = 1;
+
 	struct dirent** namelist;
 	int no_files = scandir(".", &namelist, NULL, alphasort);
 
@@ -339,32 +342,51 @@ void funct_ls(char** args) {
 	}
 
 	printf("%s", WHITE);
+	exit_status = 0;
 }	
 
 void funct_echo(char** args) {
+	exit_status = 1;
+
 	for (int i = 0; args[i][0] != '\0'; ++i) 
 		printf("%s ", args[i]);
 	printf("\n");
+
+	exit_status = 0;
 }
 
 void funct_touch(char** args) {
+	exit_status = 1;
+
 	for (int i = 0; args[i][0] != '\0'; ++i) { 
 		FILE* file = fopen(args[i], "w");
-		if (file == NULL) 
+		if (file == NULL) {
 			perror("Error touch");
+			return;
+		}
 		else 
 			fclose(file);
 	}
+
+	exit_status = 0;
 }
 
 void funct_mkdir(char** args) {
+	exit_status = 1;
+
 	for (int i = 0; args[i][0] != '\0'; ++i) { 
-		if (mkdir(args[i], 0777) == -1)
+		if (mkdir(args[i], 0777) == -1) {
 			perror("Error mkdir");
+			return;
+		}
 	}
+
+	exit_status = 0;
 }
 
 void funct_grep(char** args) {
+	exit_status = 1;
+
 	bool single_arg = true;
 	if (args[2][0] != '\0')
 		single_arg = false;
@@ -406,11 +428,19 @@ void funct_grep(char** args) {
 
 		fclose(fin);
 	}
+
+	exit_status = 0;
 }
 
 void funct_cd(char** args) {
-	if (chdir(args[0]) != 0)
+	exit_status = 1;
+
+	if (chdir(args[0]) != 0){
 		perror("Error cd");
+		return;
+	}
+
+	exit_status = 0;
 }
 
 void funct_mv(char** args) {
@@ -425,6 +455,8 @@ void funct_cp(char** args) {
 }
 
 void funct_rm(char** args){
+	exit_status = 1;
+
 	int fd;
 	fd = open(args[0], O_RDONLY);
 	if (fd < 0){
@@ -438,10 +470,13 @@ void funct_rm(char** args){
 		return;
 	}
 	printf("Succes\n");
+	exit_status = 0;
 	return;
 }
 
 void funct_rmdir(char** args){
+	exit_status = 1;
+
 	DIR* dir = opendir(args[0]);
 	if (dir){
 		//it exists
@@ -450,26 +485,38 @@ void funct_rmdir(char** args){
 	}
 	else if (ENONET == errno){
 		printf("Directory does not exits\n");
+		return;
 	}
 	else{
 		printf("An error occured\n");
+		return;
 	}
+
+	exit_status = 0;
 }
 
 void funct_clear(char** args) {
+	exit_status = 1;
 	system("clear");
+	exit_status = 0;
 }
 
 void funct_history(char** args) {
+	exit_status = 1;
 	print_history();
+	exit_status = 0;
 }
 
 void funct_pwd(char** args) {
+	exit_status = 1;
 	print_curr_dir();
 	printf("\n");
+	exit_status = 0;
 }
 
 void funct_cat(char** args) {
+	exit_status = 1;
+
 	char chunk[MAX_INPUT_LENGTH + 10];
 
 	for (int i = 0; args[i][0] != '\0'; ++i) {
@@ -486,6 +533,8 @@ void funct_cat(char** args) {
 
 		fclose(fin);
 	} 
+
+	exit_status = 0;
 }
 
 void find_command(char* command){
@@ -608,7 +657,6 @@ void read_input(char* input) {
 			// ||
 			if (type == 1)
 			{
-				int exit_status;
 				//call the function 
 				if (exit_status == 0)
 					break;
@@ -616,7 +664,6 @@ void read_input(char* input) {
 			// &&
 			if (type == 2)
 			{
-				int exit_status;
 				//call the function
 				if (exit_status != 0)
 					break;
