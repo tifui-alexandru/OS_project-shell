@@ -238,8 +238,30 @@ int get_arguments(char** arguments, char* command){
 	while (command_ptr < command_size){
 		int arg_ptr = -1;
 		args_counter++;
+		//remove the beginning spaces
 		while (command[command_ptr] == ' ' && command_ptr < command_size)
 			command_ptr ++;
+		if (command_ptr == command_size)
+			break;
+		
+		if (command[command_ptr] == '"'){
+			++command_ptr;
+			while (command[command_ptr] != '"' && command_ptr < command_size)
+			{
+				arg_ptr++;
+				arguments[args_counter][arg_ptr] = command[command_ptr];
+				command_ptr++;
+			}
+			//the argument is invalid, so arguments must be empty
+			if (command_ptr == command_size){
+				arguments[0][0] = '\0';
+				return -1;
+			}
+			command_ptr++;
+			arguments[args_counter][command_ptr] = '\0';
+			continue;
+		}
+
 		while (command[command_ptr] != ' ' && command_ptr < command_size){
 			arg_ptr ++;
 			arguments[args_counter][arg_ptr] = command[command_ptr];
@@ -247,6 +269,7 @@ int get_arguments(char** arguments, char* command){
 		}
 		arguments[args_counter][arg_ptr + 1] = '\0';
 	}
+	
 	arguments[args_counter + 1][0] = '\0';
 	return args_counter + 1;
 }
