@@ -317,7 +317,10 @@ void funct_echo(char** args) {
 void funct_touch(char** args) {
 	for (int i = 0; args[i][0] != '\0'; ++i) { 
 		FILE* file = fopen(args[i], "w");
-		fclose(file);
+		if (file == NULL) 
+			perror("Error touch");
+		else 
+			fclose(file);
 	}
 }
 
@@ -338,6 +341,11 @@ void funct_grep(char** args) {
 
 	for (int i = 1; args[i][0] != '\0'; ++i) {
 		FILE* fin = fopen(args[i], "r");
+
+		if (fin == NULL) {
+			perror("Error grep");
+			continue;
+		}
 
 		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
 			if(strstr(chunk, args[0])) {
