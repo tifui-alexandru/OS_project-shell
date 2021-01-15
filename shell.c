@@ -137,7 +137,7 @@ HistoryLine get_new_line() {
 	return line;
 }
 
-void add_command(char* str) {
+void add_command_to_history(char* str) {
 	HistoryLine line = get_new_line();
 	strcpy(line->command, str);
 
@@ -149,8 +149,12 @@ void add_command(char* str) {
 		last_line->next_line = line;
 		last_line = line;
 	}
+}
 
-	free(line);
+void print_history() {
+	for (HistoryLine line = first_line; line; line = line->next_line) {
+		printf("%s\n", line->command);
+	}
 }
 
 // -------------------------- UTILS ------------------------------
@@ -369,7 +373,6 @@ void funct_grep(char** args) {
 	int len = strlen(args[0]);
 
 	for (int i = 1; args[i][0] != '\0'; ++i) {
-
 		FILE* fin = fopen(args[i], "r");
 
 		if (fin == NULL) {
@@ -531,7 +534,7 @@ void funct_clear(char** args) {
 }
 
 void funct_history(char** args) {
-
+	print_history();
 }
 
 void funct_pwd(char** args) {
@@ -603,6 +606,9 @@ void find_command(char* command){
 		funct_clear(arguments);
 	else if (command_idx == 13)
 		funct_cp(arguments);
+
+	// add command to history
+	add_command_to_history(command);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
