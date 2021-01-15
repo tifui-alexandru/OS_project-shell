@@ -387,6 +387,10 @@ void funct_mv(char** args) {
 	// to be done	
 }
 
+void funct_cp(char** args) {
+
+}
+
 void funct_rm(char** args){
 	int fd;
 	fd = open(args[0], O_RDONLY);
@@ -419,6 +423,21 @@ void funct_rmdir(char** args){
 	}
 }
 
+void funct_clear(char** args) {
+	system("clear");
+}
+
+void funct_locate(char** args) {
+
+}
+
+void funct_history(char** args) {
+
+}
+
+void funct_pwd(char** args) {
+	
+}
 
 void find_command(char* command){
 	int command_idx = valid_command(command);
@@ -438,7 +457,7 @@ void find_command(char* command){
 	// printf("%d\n", args_counter);
 	
 	if (command_idx == 0)
-		funct_ls(NULL);
+		funct_ls(arguments);
 	else if (command_idx == 1)
 		funct_echo(arguments);
 	else if (command_idx == 2)
@@ -447,10 +466,26 @@ void find_command(char* command){
 		funct_mkdir(arguments);
 	else if (command_idx == 4)
 		funct_grep(arguments);
+	else if (command_idx == 5)
+		funct_pwd(arguments);
 	else if (command_idx == 6)
 		funct_cd(arguments);
 	else if (command_idx == 7)
 		funct_mv(arguments);
+	else if (command_idx == 8)
+		funct_rm(arguments);
+	else if (command_idx == 9)
+		funct_rmdir(arguments);
+	else if (command_idx == 10)
+		funct_locate(arguments);
+	else if (command_idx == 11)
+		funct_cat(arguments);
+	else if (command_idx == 12)
+		funct_history(arguments);
+	else if (command_idx == 13)
+		funct_clear(arguments);
+	else if (command_idx == 14)
+		funct_cd(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
