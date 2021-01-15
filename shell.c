@@ -137,7 +137,7 @@ HistoryLine get_new_line() {
 	return line;
 }
 
-void add_command(char* str) {
+void add_command_to_history(char* str) {
 	HistoryLine line = get_new_line();
 	strcpy(line->command, str);
 
@@ -149,8 +149,12 @@ void add_command(char* str) {
 		last_line->next_line = line;
 		last_line = line;
 	}
+}
 
-	free(line);
+void print_history() {
+	for (HistoryLine line = first_line; line; line = line->next_line) {
+		printf("%s\n", line->command);
+	}
 }
 
 // -------------------------- UTILS ------------------------------
@@ -282,6 +286,11 @@ char** create_arguments_matrix()
 	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++)
 		arguments[i] = malloc(MAX_INPUT_LENGTH * sizeof(*(arguments[i])));
 	
+	for (int i = 0 ;i < MAX_NUMBER_ARGUMENTS; ++i){
+		for (int j = 0; j < MAX_INPUT_LENGTH; ++j)
+			arguments[i][j] = '\0';
+	}
+
 	return arguments;
 }
 
@@ -452,7 +461,7 @@ void funct_clear(char** args) {
 }
 
 void funct_history(char** args) {
-
+	print_history();
 }
 
 void funct_pwd(char** args) {
@@ -523,10 +532,10 @@ void find_command(char* command){
 	else if (command_idx == 12)
 		funct_clear(arguments);
 	else if (command_idx == 13)
-		funct_cd(arguments);
+		funct_cp(arguments);
 
 	// add command to history
-	add_command(command);
+	add_command_to_history(command);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
