@@ -70,7 +70,7 @@ int search(char* str, int* v_min_arg, int* v_max_arg) {
 
 	for (char* letter = str; *letter; ++letter) {
 		if (node->children[*letter] == NULL) 
-			return false;
+			return -1;
 
 		node = node->children[*letter];
 	}
@@ -269,7 +269,7 @@ int get_arguments(char** arguments, char* command){
 		}
 		arguments[args_counter][arg_ptr + 1] = '\0';
 	}
-	
+
 	arguments[args_counter + 1][0] = '\0';
 	return args_counter + 1;
 }
@@ -364,6 +364,9 @@ void funct_grep(char** args) {
 	int len = strlen(args[0]);
 
 	for (int i = 1; args[i][0] != '\0'; ++i) {
+
+		printf("%s\n", args[i]);
+
 		FILE* fin = fopen(args[i], "r");
 
 		if (fin == NULL) {
@@ -451,20 +454,32 @@ void funct_clear(char** args) {
 	system("clear");
 }
 
-void funct_locate(char** args) {
-
-}
-
 void funct_history(char** args) {
 
 }
 
 void funct_pwd(char** args) {
-	
+	print_curr_dir();
+	printf("\n");
 }
 
 void funct_cat(char** args) {
+	char chunk[MAX_INPUT_LENGTH + 10];
 
+	for (int i = 0; args[i][0] != '\0'; ++i) {
+		FILE* fin = fopen(args[i], "r");
+
+		if (fin == NULL) {
+			perror("Error cat");
+			continue;
+		}
+
+		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+			printf("%s", chunk);
+		}
+
+		fclose(fin);
+	} 
 }
 
 void find_command(char* command){
@@ -505,14 +520,12 @@ void find_command(char* command){
 	else if (command_idx == 9)
 		funct_rmdir(arguments);
 	else if (command_idx == 10)
-		funct_locate(arguments);
-	else if (command_idx == 11)
 		funct_cat(arguments);
-	else if (command_idx == 12)
+	else if (command_idx == 11)
 		funct_history(arguments);
-	else if (command_idx == 13)
+	else if (command_idx == 12)
 		funct_clear(arguments);
-	else if (command_idx == 14)
+	else if (command_idx == 13)
 		funct_cd(arguments);
 
 	free_arguments_matrix(arguments);
