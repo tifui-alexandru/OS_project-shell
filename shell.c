@@ -611,6 +611,8 @@ void funct_cat(char** args) {
 }
 
 void find_command(char* command){
+
+
 	int command_idx = valid_command(command);
 	if (command_idx == -1) {
 		printf("Invalid command\n");
@@ -655,9 +657,6 @@ void find_command(char* command){
 		funct_clear(arguments);
 	else if (command_idx == 13)
 		funct_cp(arguments);
-
-	// add command to history
-	add_command_to_history(command);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
@@ -705,15 +704,18 @@ void read_input(char* input) {
 	int token = 1, type;
 	input_ptr = input;
 
+	bool flag = true;
+
 	while (token >= 0)
 	{
 		token = token_str(input_ptr);
-	
+
 		if (token == -1)
 		{
 			copy_str(command, input_ptr, strlen(input_ptr));
 			find_command(command);
 			//find what command is and call it.
+
 			break;
 		}
 		else if (token == -2)
@@ -731,34 +733,50 @@ void read_input(char* input) {
 			if (type == 1)
 			{
 				//call the function 
-				if (exit_status == 0)
+				find_command(command);
+				
+				if (exit_status == 0){
+					flag = false;
 					break;
+				}
+				input_ptr += 2;
 			}
 			// &&
 			if (type == 2)
 			{
-				//call the function
-				if (exit_status != 0)
+				
+				
+				find_command(command);
+				
+				if (exit_status != 0){
+					flag = false;
 					break;
+				}
+				input_ptr += 2;
 			}
 			// <
 			if (type == 3)
 			{
-				
+				++input_ptr;
 			}
 			// >
 			if (type == 4)
 			{
-
+				++input_ptr;
 			}
 			// |
 			if (type == 5)
 			{
-
+				++input_ptr;
 			}
 		}
+		if (exit_status)
+			flag = false;
 
 	}
+	if (flag == true)
+		add_command_to_history(command);
+
 	//free(temp);
 	free(command);
 
