@@ -282,6 +282,11 @@ char** create_arguments_matrix()
 	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++)
 		arguments[i] = malloc(MAX_INPUT_LENGTH * sizeof(*(arguments[i])));
 	
+	for (int i = 0 ;i < MAX_NUMBER_ARGUMENTS; ++i){
+		for (int j = 0; j < MAX_INPUT_LENGTH; ++j)
+			arguments[i][j] = '\0';
+	}
+
 	return arguments;
 }
 
@@ -364,8 +369,6 @@ void funct_grep(char** args) {
 	int len = strlen(args[0]);
 
 	for (int i = 1; args[i][0] != '\0'; ++i) {
-
-		printf("%s\n", args[i]);
 
 		FILE* fin = fopen(args[i], "r");
 
