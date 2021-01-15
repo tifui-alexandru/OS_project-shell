@@ -612,7 +612,7 @@ void funct_cat(char** args) {
 
 void find_command(char* command){
 
-
+	printf("%sxxx\n",command);
 	int command_idx = valid_command(command);
 	if (command_idx == -1) {
 		printf("Invalid command\n");
@@ -782,10 +782,18 @@ void read_input(char* input) {
 			// >
 			if (type == 4)
 			{
+
+				copy_str(command, input_ptr, token / 10);
+
 				char* file_name = malloc(MAX_INPUT_LENGTH * sizeof(*file_name));
 
 				++input_ptr;
 				token = token_str(input_ptr);
+
+				printf("%s\n", input_ptr);
+				printf("%d\n", token);
+				if (token == -1)
+					token = strlen(input_ptr) * 10;
 
 				copy_str(file_name, input_ptr, token / 10);
 
@@ -796,9 +804,6 @@ void read_input(char* input) {
 				
 				find_command(strcat(touch_command, file_name));
 
-				printf("%s\n", touch_command);
-				printf("%s\n", file_name);
-
 				// redirect stdout to file
 				int o = dup(fileno(stdout));
 				if (freopen(file_name,"w",stdout) == NULL) {
@@ -806,9 +811,7 @@ void read_input(char* input) {
 					continue;
 				}
 
-				printf("hehe\n");
-
-
+				printf("xx xx %s\n", command);
 				find_command(command);
 
 				// restore stdout
