@@ -21,6 +21,8 @@
 #define BLUE "\x1b[94m"
 #define CYAN "\x1b[96m"
 #define WHITE "\033[0m"
+#define RED "\x1b[31m"
+#define MAGENTA "\x1b[35m"
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
@@ -328,7 +330,42 @@ void funct_mkdir(char** args) {
 }
 
 void funct_grep(char** args) {
+	bool single_arg = true;
+	if (args[2][0] != '\0')
+		single_arg = false;
 
+	char chunk[MAX_INPUT_LENGTH + 10];
+	int len = strlen(args[0]);
+
+	for (int i = 1; args[i][0] != '\0'; ++i) {
+		FILE* fin = fopen(args[i], "r");
+
+		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+			if(strstr(chunk, args[0])) {
+				if (!single_arg)
+					printf("%s%s: ", MAGENTA, args[i]);
+
+				char* found = strstr(chunk, args[0]);
+				char* last = chunk;
+
+				while (found) {
+					for (char* p = last; p != found; ++p)
+						printf("%s%c", WHITE, *p);
+
+					if (*(found + len) == '\0')
+						break;
+
+					last = found + len;
+					found = strstr(found + len, args[0]);
+					printf("%s%s", RED, args[0]);
+				}
+
+				printf("%s%s", WHITE, last);
+			}
+		}
+
+		fclose(fin);
+	}
 }
 
 void find_command(char* command){
@@ -357,7 +394,7 @@ void find_command(char* command){
 	else if (command_idx == 3)
 		funct_mkdir(arguments);
 	else if (command_idx == 4)
-		funct_grep(args);
+		funct_grep(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
