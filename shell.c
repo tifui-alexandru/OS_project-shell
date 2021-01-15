@@ -364,9 +364,6 @@ void funct_grep(char** args) {
 	int len = strlen(args[0]);
 
 	for (int i = 1; args[i][0] != '\0'; ++i) {
-
-		printf("%s\n", args[i]);
-
 		FILE* fin = fopen(args[i], "r");
 
 		if (fin == NULL) {
@@ -527,6 +524,9 @@ void find_command(char* command){
 		funct_clear(arguments);
 	else if (command_idx == 13)
 		funct_cd(arguments);
+
+	// add command to history
+	add_command(command);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
