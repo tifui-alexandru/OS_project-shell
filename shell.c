@@ -706,6 +706,8 @@ void read_input(char* input) {
 
 	bool flag = true;
 
+	char chunk[MAX_INPUT_LENGTH + 10];
+
 	while (token >= 0)
 	{
 		token = token_str(input_ptr);
@@ -757,12 +759,64 @@ void read_input(char* input) {
 			// <
 			if (type == 3)
 			{
-				++input_ptr;
+				// FILE* fin = fopen(command, "r");
+				// ++input_ptr;
+
+				// if (fin == NULL) {
+				// 	perror("< Error");
+				// 	continue;
+				// }
+
+				// token = token_str(input_ptr);
+				// copy_str(command, input_ptr, token / 10);
+
+				// while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+			 //        strcat(command, " \0");
+			 //        strcat(command, chunk);
+			 //    }
+
+				// find_command(command);
+
+				// fclose(fin);				
 			}
 			// >
 			if (type == 4)
 			{
+				char* file_name = malloc(MAX_INPUT_LENGTH * sizeof(*file_name));
+
 				++input_ptr;
+				token = token_str(input_ptr);
+
+				copy_str(file_name, input_ptr, token / 10);
+
+
+				// create the file if not exists
+				char* touch_command = malloc(MAX_INPUT_LENGTH * sizeof(*touch_command));
+				strcpy(touch_command, "touch \0");
+				
+				find_command(strcat(touch_command, file_name));
+
+				printf("%s\n", touch_command);
+				printf("%s\n", file_name);
+
+				// redirect stdout to file
+				int o = dup(fileno(stdout));
+				if (freopen(file_name,"w",stdout) == NULL) {
+					perror("Error >");
+					continue;
+				}
+
+				printf("hehe\n");
+
+
+				find_command(command);
+
+				// restore stdout
+				dup2(o,fileno(stdout));
+				close(o);
+
+				free(file_name);
+				free(touch_command);
 			}
 			// |
 			if (type == 5)
