@@ -23,6 +23,8 @@
 #define BLUE "\x1b[94m"
 #define CYAN "\x1b[96m"
 #define WHITE "\033[0m"
+#define RED "\x1b[31m"
+#define MAGENTA "\x1b[35m"
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
@@ -282,11 +284,7 @@ void print_curr_dir() {
 		perror("getcwd() error");
 }
 
-
-void funct_cd(char *path)
-{
-	printf("ok");
-}
+// implement commands
 
 void funct_ls(char** args) {
 	struct dirent** namelist;
@@ -313,7 +311,72 @@ void funct_ls(char** args) {
 
 void funct_echo(char** args) {
 	for (int i = 0; args[i][0] != '\0'; ++i) 
-		printf("%s\n", args[i]);
+		printf("%s ", args[i]);
+}
+
+void funct_touch(char** args) {
+	for (int i = 0; args[i][0] != '\0'; ++i) { 
+		FILE* file = fopen(args[i], "w");
+		fclose(file);
+	}
+}
+
+void funct_mkdir(char** args) {
+	for (int i = 0; args[i][0] != '\0'; ++i) { 
+		if (mkdir(args[i], 0777) == -1)
+			perror("Error mkdir");
+	}
+}
+
+void funct_grep(char** args) {
+	bool single_arg = true;
+	if (args[2][0] != '\0')
+		single_arg = false;
+
+	char chunk[MAX_INPUT_LENGTH + 10];
+	int len = strlen(args[0]);
+
+	for (int i = 1; args[i][0] != '\0'; ++i) {
+		FILE* fin = fopen(args[i], "r");
+
+		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+			if(strstr(chunk, args[0])) {
+				if (!single_arg)
+					printf("%s%s: ", MAGENTA, args[i]);
+
+				char* found = strstr(chunk, args[0]);
+				char* last = chunk;
+
+				while (found) {
+					for (char* p = last; p != found; ++p)
+						printf("%s%c", WHITE, *p);
+
+					if (*(found + len) == '\0')
+						break;
+
+					last = found + len;
+					found = strstr(found + len, args[0]);
+					printf("%s%s", RED, args[0]);
+				}
+
+				printf("%s%s", WHITE, last);
+			}
+		}
+
+		fclose(fin);
+	}
+}
+
+void funct_cd(char** args) {
+	if (chdir(args[0]) != 0)
+		perror("Error cd");
+}
+
+void funct_mv(char** args) {
+	char* src = args[0];
+	char* dst = args[1];
+
+	// to be done	
 }
 
 void funct_rm(char** args){
@@ -356,7 +419,7 @@ void find_command(char* command){
 		return;
 	}
 
-	char* command_name = malloc(MAX_INPUT_LENGTH*sizeof(*command_name));
+	char* command_name = malloc(MAX_INPUT_LENGTH * sizeof(*command_name));
 	char** arguments;
 	int args_counter;
 
@@ -370,6 +433,16 @@ void find_command(char* command){
 		funct_ls(NULL);
 	else if (command_idx == 1)
 		funct_echo(arguments);
+	else if (command_idx == 2)
+		funct_touch(arguments);
+	else if (command_idx == 3)
+		funct_mkdir(arguments);
+	else if (command_idx == 4)
+		funct_grep(arguments);
+	else if (command_idx == 6)
+		funct_cd(arguments);
+	else if (command_idx == 7)
+		funct_mv(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
