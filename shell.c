@@ -269,7 +269,7 @@ int get_arguments(char** arguments, char* command){
 		}
 		arguments[args_counter][arg_ptr + 1] = '\0';
 	}
-	
+
 	arguments[args_counter + 1][0] = '\0';
 	return args_counter + 1;
 }
@@ -460,6 +460,10 @@ void funct_history(char** args) {
 
 void funct_pwd(char** args) {
 	
+}
+
+void funct_cat(char** args){
+
 }
 
 void find_command(char* command){
