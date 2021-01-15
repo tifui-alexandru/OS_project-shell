@@ -335,6 +335,7 @@ void funct_ls(char** args) {
 void funct_echo(char** args) {
 	for (int i = 0; args[i][0] != '\0'; ++i) 
 		printf("%s ", args[i]);
+	printf("\n");
 }
 
 void funct_touch(char** args) {
@@ -460,6 +461,10 @@ void funct_history(char** args) {
 
 void funct_pwd(char** args) {
 	
+}
+
+void funct_cat(char** args) {
+
 }
 
 void find_command(char* command){
