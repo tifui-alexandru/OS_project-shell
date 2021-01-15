@@ -411,14 +411,87 @@ void funct_cd(char** args) {
 }
 
 void funct_mv(char** args) {
+
 	char* src = args[0];
 	char* dst = args[1];
+    FILE *f_read, *f_write;
 
-	// to be done	
+    f_read = fopen(src, "r"); 
+    if(f_read == NULL){
+		printf("Source file does not exist.\n"); 
+		return;
+	}
+
+    f_write = fopen(dst, "ab+"); 
+    fclose(f_write);
+
+    f_write = fopen(dst, "w+"); //deschid pt scris
+    if(f_write == NULL){
+        printf("Error while creating destination file.\n");
+        fclose(f_read); 
+		return;
+    }
+
+    if(open(dst, O_WRONLY)<0 || open(src, O_RDONLY)<0){
+		printf("An error occured"); 
+		return;
+	}
+
+    char cp;
+    while((cp=getc(f_read))!=EOF)  putc(cp,f_write);
+
+    fclose(f_read); 
+	fclose(f_write);
+
+	int fd = open(args[0], O_RDONLY);
+	if (fd < 0){
+		printf("File does not exist");
+		return;
+	}
+	close(fd);
+
+	if (unlink(args[0])){
+		printf("An error occured while deleting the file\n");
+		return;
+	}
+	printf("Succes\n");
+	
 }
 
 void funct_cp(char** args) {
 
+	char* src = args[0];
+	char* dst = args[1];
+    FILE *f_read, *f_write;
+
+    f_read = fopen(src, "r"); 
+    if(f_read == NULL){
+		printf("Source file does not exist.\n"); 
+		return;
+	}
+
+    f_write = fopen(dst, "ab+"); 
+    fclose(f_write);
+
+    f_write = fopen(dst, "w+"); //deschid pt scris
+    if(f_write == NULL){
+        printf("Error while creating destination file.\n");
+        fclose(f_read); 
+		return;
+    }
+
+    if(open(dst, O_WRONLY)<0 || open(src, O_RDONLY)<0){
+		printf("An error occured"); 
+		return;
+	}
+
+    char cp;
+    while((cp=getc(f_read))!=EOF)  putc(cp,f_write);
+
+    fclose(f_read); 
+	fclose(f_write);
+
+	printf("Succes\n");
 }
 
 void funct_rm(char** args){
@@ -529,7 +602,7 @@ void find_command(char* command){
 	else if (command_idx == 12)
 		funct_clear(arguments);
 	else if (command_idx == 13)
-		funct_cd(arguments);
+		funct_cp(arguments);
 
 	free_arguments_matrix(arguments);
 	free(command_name);
@@ -590,7 +663,7 @@ void read_input(char* input) {
 		}
 		else if (token == -2)
 		{
-			printf("Comanda invalida\n");
+			printf("Invalid command\n");
 			//invalid command
 		}
 		else 
