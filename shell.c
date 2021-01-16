@@ -209,15 +209,15 @@ void copy_str(char* dest, char* src, int length){
 	int start = 0;
 	int end = length - 1;
 	while (src[start] == ' ' && start < length)
-		++start;  
+		start++;  
 	while (src[end] == ' ' && end >= 0)
-		--end;
+		end--;
 
 	for (int i = start; i <= end; i++)
 	{
 		dest[i - start] = src[i];
 	}
-	dest[end + 1] = '\0';
+	dest[end - start + 1] = '\0';
 }
 
 //returns if it can find the first word in src
@@ -504,7 +504,6 @@ void funct_mv(char** args) {
 		printf("An error occured while deleting the file\n");
 		return;
 	}
-	printf("Succes\n");
 	
 }
 
@@ -540,8 +539,6 @@ void funct_cp(char** args) {
 
     fclose(f_read); 
 	fclose(f_write);
-
-	printf("Succes\n");
 }
 
 void funct_rm(char** args){
@@ -559,7 +556,7 @@ void funct_rm(char** args){
 		printf("An error occured while deleting the file\n");
 		return;
 	}
-	printf("Succes\n");
+	
 	exit_status = 0;
 	return;
 }
@@ -715,14 +712,17 @@ void exec_command(char* command){
 void find_command(char* command){
 
 	int command_idx = valid_command(command);
+
 	if (command_idx == -1) {
 		//need to check if we need to run a program 
 		if (command[0] == '.' || command[0] == '/')
 			exec_command(command);
 		else if (strcmp(command, "exit") == 0)
 			kill_signal = 1;
-		else 
+		else{
+			exit_status = 1;
 			printf("Invalid command\n");
+		}
 		return;
 	}
 	if (kill_signal == 1)
@@ -736,8 +736,7 @@ void find_command(char* command){
 
 	get_command_name(command_name, command);
 	args_counter = get_arguments(arguments, command);
-	// printf("%d\n", args_counter);
-	
+
 	if (command_idx == 0)
 		funct_ls(arguments);
 	else if (command_idx == 1)
@@ -766,6 +765,10 @@ void find_command(char* command){
 		funct_clear(arguments);
 	else if (command_idx == 13)
 		funct_cp(arguments);
+	else if (command_idx == 14)
+		exit_status = 1;
+	else if (command_idx == 15)
+		exit_status = 0;
 
 	free_arguments_matrix(arguments);
 	free(command_name);
@@ -813,6 +816,8 @@ void read_input(char* input) {
 	if (strlen(temp) > 0)
 		strcpy(input, temp);
 
+	input[strlen(input)] = '\0';
+
 	char* input_ptr;
 	int token = 1, type;
 	input_ptr = input;
@@ -830,6 +835,10 @@ void read_input(char* input) {
 		if (token == -1)
 		{
 			copy_str(command, input_ptr, strlen(input_ptr));
+			//printf("strlen %d\n", strlen(input_ptr));
+			//printf("big command %s\n", input_ptr);
+			//printf("command %s \n", command);
+
 			find_command(command);
 			//find what command is and call it.
 
@@ -847,7 +856,8 @@ void read_input(char* input) {
 			token = token / 10;
 			copy_str(command, input_ptr, token);
 			input_ptr += token;
-
+			//printf("big command %s\n", input_ptr);
+			//printf("command %s \n", command);
 			// ||
 			if (type == 1){
 				//call the function 
