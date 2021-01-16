@@ -32,7 +32,7 @@
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
 char pipe_buffer[MAX_COMMANDS_HISTORY];
-int exit_status, kill_signal = 0;
+int exit_status, kill_signal = 0, copy_in_buffer = 0;
 pid_t pid = -1;
 static volatile int keepRunning = 1;
 
@@ -367,19 +367,32 @@ void funct_ls(char** args) {
 		perror("Error ls");
 		return;
 	}
-
-	for (int i = 0; i < no_files; ++i) {
-		if (namelist[i]->d_name[0] != '.') {
-			if (namelist[i]->d_type == DT_REG)
-				printf("%s%s\n", BLUE, namelist[i]->d_name);
-			else if (namelist[i]->d_type == DT_DIR)
-				printf("%s%s\n", GREEN, namelist[i]->d_name);
-			else
-				printf("%s%s\n", CYAN, namelist[i]->d_name);
+	if (copy_in_buffer){
+		for (int i = 0; i < no_files; ++i) {
+			if (namelist[i]->d_name[0] != '.') {
+				if (namelist[i]->d_type == DT_REG)
+					printf("%s\n", namelist[i]->d_name);
+				else if (namelist[i]->d_type == DT_DIR)
+					printf("%s\n", namelist[i]->d_name);
+				else
+					printf("%s\n", namelist[i]->d_name);
+			}
 		}
 	}
+	else{
+		for (int i = 0; i < no_files; ++i) {
+			if (namelist[i]->d_name[0] != '.') {
+				if (namelist[i]->d_type == DT_REG)
+					printf("%s%s\n", BLUE,namelist[i]->d_name);
+				else if (namelist[i]->d_type == DT_DIR)
+					printf("%s%s\n", GREEN,namelist[i]->d_name);
+				else
+					printf("%s%s\n", CYAN,namelist[i]->d_name);
+			}
+		}		
+		printf("%s", WHITE);
+	}
 
-	printf("%s", WHITE);
 	exit_status = 0;
 }	
 
@@ -442,25 +455,48 @@ void funct_grep(char** args) {
 
 		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
 			if(strstr(chunk, args[0])) {
-				if (!single_arg)
-					printf("%s%s: ", MAGENTA, args[i]);
+				if(copy_in_buffer){
+					if (!single_arg)
+						printf("%s: ", args[i]);
 
-				char* found = strstr(chunk, args[0]);
-				char* last = chunk;
+					char* found = strstr(chunk, args[0]);
+					char* last = chunk;
 
-				while (found) {
-					for (char* p = last; p != found; ++p)
-						printf("%s%c", WHITE, *p);
+					while (found) {
+						for (char* p = last; p != found; ++p)
+							printf("%c", *p);
 
-					if (*(found + len) == '\0')
-						break;
+						if (*(found + len) == '\0')
+							break;
 
-					last = found + len;
-					found = strstr(found + len, args[0]);
-					printf("%s%s", RED, args[0]);
+						last = found + len;
+						found = strstr(found + len, args[0]);
+						printf("%s", args[0]);
+					}
+
+					printf("%s", last);
 				}
+				else {
+					if (!single_arg)
+						printf("%s%s: ", MAGENTA, args[i]);
 
-				printf("%s%s", WHITE, last);
+					char* found = strstr(chunk, args[0]);
+					char* last = chunk;
+
+					while (found) {
+						for (char* p = last; p != found; ++p)
+							printf("%s%c", WHITE, *p);
+
+						if (*(found + len) == '\0')
+							break;
+
+						last = found + len;
+						found = strstr(found + len, args[0]);
+						printf("%s%s", RED, args[0]);
+					}
+
+					printf("%s%s", WHITE, last);
+				}
 			}
 		}
 
@@ -971,13 +1007,15 @@ void read_input(char* input) {
 			// |
 			else if (type == 5){
 				// redirect stdout to file
+				copy_in_buffer = 1;
 				freopen(buffer_file_for_pipe, "w", stdout); 
 				
 				find_command(command);
 
 				// restore stdout
 				freopen("/dev/tty", "w", stdout); 
-
+				copy_in_buffer = 0;
+				
 				if (exit_status == 1) {
 					perror("Invalid Commnad");
 					flag = false;
