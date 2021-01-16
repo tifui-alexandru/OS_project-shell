@@ -13,6 +13,8 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include<readline/readline.h>
+#include<readline/history.h>
 
 // define constants
 #define MAX_INPUT_LENGTH 1024
@@ -873,9 +875,11 @@ void read_input(char* input) {
 
 	char* temp=readline("$ ");
 
-	if (strlen(temp) > 0)
-		strcpy(input, temp);
 
+	if (strlen(temp) > 0){
+        add_history(temp);
+		strcpy(input, temp);
+    }
 	input[strlen(input)] = '\0';
 
 	char* input_ptr;
