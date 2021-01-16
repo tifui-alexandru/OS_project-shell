@@ -10,6 +10,9 @@
 #include <unistd.h>
 #include <readline/readline.h>
 #include <dirent.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 // define constants
 #define MAX_INPUT_LENGTH 1024
@@ -28,7 +31,10 @@
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
-int exit_status;
+int exit_status, kill_signal = 0;
+pid_t pid = -1;
+static volatile int keepRunning = 1;
+
 
 // trie implementation
 struct Trie {
@@ -306,8 +312,10 @@ char** create_arguments_matrix()
 
 void free_arguments_matrix(char** arguments)
 {
-	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++)
-		free(arguments[i]);
+	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++){
+		if (arguments[i] != NULL)
+			free(arguments[i]);
+	}
 	free(arguments);
 }
 
@@ -619,14 +627,106 @@ void funct_cat(char** args) {
 	exit_status = 0;
 }
 
+char* get_absolute_path(char* command_path){
+
+	char* new_path = malloc(MAX_INPUT_LENGTH*sizeof(*new_path));
+	new_path[0] = '\0';
+
+	if (command_path[0] == '.'){
+		strcpy(new_path, cwd);
+		strcat(new_path, (command_path + 1));
+		free(command_path);
+		return new_path;
+	}
+	else{
+		free(new_path);
+		return command_path;
+	}
+}
+
+void sig_handler(int sig_num)
+{
+    // Reset handler to catch SIGTSTP next time
+    signal(SIGINT, sig_handler);
+
+	printf("%d\n", sig_num);
+
+    if (pid != -1) {
+        printf("\nProcess with pid %d suspended\n", pid);
+		kill(pid,SIGKILL);
+    	pid = -1;
+    }
+	else{
+		char** dummy;
+		funct_clear(dummy);
+		printf("%s$ ", cwd);
+	}
+	
+
+}
+
+
+
+void exec_command(char* command){
+	char* command_path = malloc(MAX_INPUT_LENGTH * sizeof(*command_path));
+	char** args = create_arguments_matrix();;
+	int args_counter = 0;
+	
+	get_command_name(command_path, command);
+	//get the absolute path
+	command_path = get_absolute_path(command_path);
+	args_counter = get_arguments(args, command);
+
+	//we need to change the structure of arguments
+	for (int i = args_counter; i >= 1; --i){
+		strcpy(args[args_counter], args[args_counter - 1]);
+	}
+	for (int i = args_counter + 1; i < MAX_NUMBER_ARGUMENTS; ++i){
+		free(args[i]);
+		args[i] = NULL;
+	}
+
+	strcpy(args[0], command_path);
+
+	pid = 0;
+	pid = fork();
+	if (pid < 0){
+		perror("Error while forking\n");
+		free(command_path);
+		free_arguments_matrix(args);
+		return;
+	}
+	else if (pid == 0){
+		execve(command_path, args, NULL);
+		perror(NULL);
+		exit(0);
+	}
+	else if (pid > 0){
+		wait(NULL);
+		//the process is dead 
+		pid = -1;
+		free(command_path);
+		free_arguments_matrix(args);
+	}
+
+}
+
+
 void find_command(char* command){
 
 	int command_idx = valid_command(command);
 	if (command_idx == -1) {
-		printf("%s\n", command);
-		printf("Invalid command\n");
+		//need to check if we need to run a program 
+		if (command[0] == '.' || command[0] == '/')
+			exec_command(command);
+		else if (strcmp(command, "exit") == 0)
+			kill_signal = 1;
+		else 
+			printf("Invalid command\n");
 		return;
 	}
+	if (kill_signal == 1)
+		return;
 
 	char* command_name = malloc(MAX_INPUT_LENGTH * sizeof(*command_name));
 	char** arguments;
@@ -676,6 +776,10 @@ void find_command(char* command){
 
 // read input from stdin
 void read_input(char* input) {
+	
+	if(kill_signal)
+		return;
+
 	//to be able to read char by char and not put stdin in a buffer
 	
 
@@ -719,6 +823,8 @@ void read_input(char* input) {
 
 	while (token >= 0)
 	{
+		if (kill_signal)
+			return;
 		token = token_str(input_ptr);
 
 		if (token == -1)
@@ -878,10 +984,13 @@ void init() {
 }
 
 int main() {
-
+	signal(SIGINT, sig_handler);
+	
 	init();
 	char input[MAX_INPUT_LENGTH];
 	while(true) {
+		if(kill_signal)
+			return 0;
 		print_curr_dir();
 		read_input(input);
 	}
