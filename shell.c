@@ -202,6 +202,23 @@ int token_str(char* str){
 	return -2;
 }
 
+// trim ' ' and '\n'
+void trim(char* str) {
+	if (str == NULL)
+		return;
+	
+	int length = strlen(str);
+	int start = 0;
+	int end = length - 1;
+	while ((str[start] == ' ' || str[start] == '\n') && start < length)
+		start++;  
+	while ((str[end] == ' ' || str[end] == '\n') && end >= 0)
+		end--;
+
+	str[end - start + 1] = '\0';
+	str = str + start;
+}
+
 void copy_str(char* dest, char* src, int length){
 	//experimental
 	//trim front and back spaces
@@ -880,25 +897,38 @@ void read_input(char* input) {
 			}
 			// <
 			else if (type == 3){
-				// FILE* fin = fopen(command, "r");
-				// ++input_ptr;
+				char* file_name = malloc(MAX_INPUT_LENGTH * sizeof(*file_name));
 
-				// if (fin == NULL) {
-				// 	perror("< Error");
-				// 	continue;
-				// }
+				++input_ptr;
+				token = token_str(input_ptr);
+				if (token == -1)
+					token = strlen(input_ptr) * 10;
 
-				// token = token_str(input_ptr);
-				// copy_str(command, input_ptr, token / 10);
+				copy_str(file_name, input_ptr, token / 10);
 
-				// while(fgets(chunk, sizeof(chunk), fin) != NULL) {
-			 //        strcat(command, " \0");
-			 //        strcat(command, chunk);
-			 //    }
+				// get the arguments from the file
+				FILE* fin = fopen(file_name, "r");
+				if (fin == NULL) {
+					perror("Invalid command");
+					return;
+				}
 
-				// find_command(command);
+				while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+					trim(chunk);
+			        strcat(command, " \0");
+			        strcat(command, chunk);
+			    }
 
-				// fclose(fin);				
+				fclose(fin);
+
+				find_command(command);
+
+				free(file_name);
+
+				//check if we have more commands to process or don't
+				token = token_str(input_ptr);
+				if (token == -1)
+					break; 			
 			}
 			// >
 			else if (type == 4){
