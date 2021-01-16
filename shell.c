@@ -31,9 +31,13 @@
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
+char pipe_buffer[MAX_COMMANDS_HISTORY];
 int exit_status, kill_signal = 0;
 pid_t pid = -1;
 static volatile int keepRunning = 1;
+
+// has to be hidden
+char* buffer_file_for_pipe = ".buffer.txt";
 
 
 // trie implementation
@@ -722,8 +726,13 @@ void exec_command(char* command){
 
 }
 
-
 void find_command(char* command){
+	// get pipe arguments if any and clear the buffer
+	strcat(command, pipe_buffer);
+	for (char* p = pipe_buffer; *p; ++p)
+		p = '\0';
+
+	printf("%s\n", command);
 
 	int command_idx = valid_command(command);
 
@@ -961,6 +970,29 @@ void read_input(char* input) {
 			}
 			// |
 			else if (type == 5){
+				// redirect stdout to file
+				freopen(buffer_file_for_pipe, "w", stdout); 
+				
+				find_command(command);
+
+				if (exit_status == 1) {
+					perror("Invalid Commnad");
+					flag = false;
+					break;
+				}
+
+				// restore stdout
+				freopen("/dev/tty", "w", stdout); 
+
+				FILE* fin = fopen(buffer_file_for_pipe, "r");
+				while(fgets(chunk, sizeof(chunk), fin) != NULL) {
+					trim(chunk);
+			        strcat(pipe_buffer, chunk);
+			        strcat(pipe_buffer, " \0");
+			    }
+
+			    fclose(fin);
+
 				++input_ptr;
 			}
 		}
