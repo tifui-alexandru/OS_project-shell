@@ -1,4 +1,3 @@
-ls
 [94ma.out
 [94ma.txt
 [94mcommands.txt

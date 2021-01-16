@@ -19,7 +19,7 @@
 #define SIGMA 256
 #define MAX_PATH_LENGTH 1024
 #define MAX_COMMANDS_HISTORY 20
-#define MAX_NUMBER_ARGUMENTS 5
+#define MAX_NUMBER_ARGUMENTS 50
 
 // define colours
 #define GREEN "\x1b[92m"
@@ -729,12 +729,13 @@ void exec_command(char* command){
 void find_command(char* command){
 	// get pipe arguments if any and clear the buffer
 	strcat(command, pipe_buffer);
-	for (char* p = pipe_buffer; *p; ++p)
-		p = '\0';
-
-	printf("%s\n", command);
+	for (int len = strlen(pipe_buffer), i = 0; i < len; ++i)
+		pipe_buffer[i] = '\0';
 
 	int command_idx = valid_command(command);
+
+	if (command_idx == 4)
+		printf("%s\n", command);
 
 	if (command_idx == -1) {
 		//need to check if we need to run a program 
@@ -879,8 +880,7 @@ void read_input(char* input) {
 			token = token / 10;
 			copy_str(command, input_ptr, token);
 			input_ptr += token;
-			//printf("big command %s\n", input_ptr);
-			//printf("command %s \n", command);
+			
 			// ||
 			if (type == 1){
 				//call the function 
@@ -975,20 +975,20 @@ void read_input(char* input) {
 				
 				find_command(command);
 
+				// restore stdout
+				freopen("/dev/tty", "w", stdout); 
+
 				if (exit_status == 1) {
 					perror("Invalid Commnad");
 					flag = false;
 					break;
 				}
 
-				// restore stdout
-				freopen("/dev/tty", "w", stdout); 
-
 				FILE* fin = fopen(buffer_file_for_pipe, "r");
 				while(fgets(chunk, sizeof(chunk), fin) != NULL) {
 					trim(chunk);
-			        strcat(pipe_buffer, chunk);
 			        strcat(pipe_buffer, " \0");
+			        strcat(pipe_buffer, chunk);
 			    }
 
 			    fclose(fin);
