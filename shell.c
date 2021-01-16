@@ -801,12 +801,6 @@ void read_input(char* input) {
 
 				copy_str(file_name, input_ptr, token / 10);
 
-				// create the file if not exists
-				char* touch_command = malloc(MAX_INPUT_LENGTH * sizeof(*touch_command));
-				strcpy(touch_command, "touch \0");
-				
-				find_command(strcat(touch_command, file_name));
-
 				// redirect stdout to file
 				freopen(file_name, "a+", stdout); 
 				
@@ -816,7 +810,6 @@ void read_input(char* input) {
 				freopen("/dev/tty", "w", stdout); 
 				
 				free(file_name);
-				free(touch_command);
 
 				//check if we have more commands to process or don't
 				token = token_str(input_ptr);
