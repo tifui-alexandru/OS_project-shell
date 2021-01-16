@@ -197,12 +197,21 @@ int token_str(char* str){
 }
 
 void copy_str(char* dest, char* src, int length){
+	//experimental
+	//trim front and back spaces
 
-	for (int i = 0; i < length; i++)
+	int start = 0;
+	int end = length - 1;
+	while (src[start] == ' ' && start < length)
+		++start;  
+	while (src[end] == ' ' && end >= 0)
+		--end;
+
+	for (int i = start; i <= end; i++)
 	{
-		dest[i] = src[i];
+		dest[i - start] = src[i];
 	}
-	dest[length] = '\0';
+	dest[end + 1] = '\0';
 }
 
 //returns if it can find the first word in src
@@ -612,9 +621,9 @@ void funct_cat(char** args) {
 
 void find_command(char* command){
 
-	printf("%sxxx\n",command);
 	int command_idx = valid_command(command);
 	if (command_idx == -1) {
+		printf("%s\n", command);
 		printf("Invalid command\n");
 		return;
 	}
@@ -727,13 +736,14 @@ void read_input(char* input) {
 		}
 		else 
 		{
+			//read the command before a separator
 			type = token % 10;
 			token = token / 10;
 			copy_str(command, input_ptr, token);
 			input_ptr += token;
+
 			// ||
-			if (type == 1)
-			{
+			if (type == 1){
 				//call the function 
 				find_command(command);
 				
@@ -744,8 +754,7 @@ void read_input(char* input) {
 				input_ptr += 2;
 			}
 			// &&
-			if (type == 2)
-			{
+			else if (type == 2){
 				
 				
 				find_command(command);
@@ -757,8 +766,7 @@ void read_input(char* input) {
 				input_ptr += 2;
 			}
 			// <
-			if (type == 3)
-			{
+			else if (type == 3){
 				// FILE* fin = fopen(command, "r");
 				// ++input_ptr;
 
@@ -780,23 +788,18 @@ void read_input(char* input) {
 				// fclose(fin);				
 			}
 			// >
-			if (type == 4)
-			{
+			else if (type == 4){
 
-				copy_str(command, input_ptr, token / 10);
+				//copy_str(command, input_ptr, token / 10);
 
 				char* file_name = malloc(MAX_INPUT_LENGTH * sizeof(*file_name));
 
 				++input_ptr;
 				token = token_str(input_ptr);
-
-				printf("%s\n", input_ptr);
-				printf("%d\n", token);
 				if (token == -1)
 					token = strlen(input_ptr) * 10;
 
 				copy_str(file_name, input_ptr, token / 10);
-
 
 				// create the file if not exists
 				char* touch_command = malloc(MAX_INPUT_LENGTH * sizeof(*touch_command));
@@ -805,25 +808,23 @@ void read_input(char* input) {
 				find_command(strcat(touch_command, file_name));
 
 				// redirect stdout to file
-				int o = dup(fileno(stdout));
-				if (freopen(file_name,"w",stdout) == NULL) {
-					perror("Error >");
-					continue;
-				}
-
-				printf("xx xx %s\n", command);
+				freopen(file_name, "a+", stdout); 
+				
 				find_command(command);
 
 				// restore stdout
-				dup2(o,fileno(stdout));
-				close(o);
-
+				freopen("/dev/tty", "w", stdout); 
+				
 				free(file_name);
 				free(touch_command);
+
+				//check if we have more commands to process or don't
+				token = token_str(input_ptr);
+				if (token == -1)
+					break; 
 			}
 			// |
-			if (type == 5)
-			{
+			else if (type == 5){
 				++input_ptr;
 			}
 		}
