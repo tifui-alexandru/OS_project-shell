@@ -646,16 +646,13 @@ void sig_handler(int sig_num)
     // Reset handler to catch SIGTSTP next time
     signal(SIGINT, sig_handler);
 
-	printf("%d\n", sig_num);
-
     if (pid != -1) {
         printf("\nProcess with pid %d suspended\n", pid);
 		kill(pid,SIGKILL);
     	pid = -1;
     }
 	else{
-		char** dummy;
-		funct_clear(dummy);
+		printf("\n");
 		printf("%s$ ", cwd);
 	}
 	
