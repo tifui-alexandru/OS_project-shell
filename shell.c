@@ -105,8 +105,11 @@ int valid_command(char* str) {
 	int command_min_arg, command_max_arg;
 	int idx_command = search(token, &command_min_arg, &command_max_arg);
 
-	if (idx_command == -1)
+	if (idx_command == -1){
+		strcpy(str, str_copy);
+		free(str_copy);
 		return -1;
+	}
 
 	int no_args = 0;
 
@@ -767,11 +770,8 @@ void find_command(char* command){
 	strcat(command, pipe_buffer);
 	for (int len = strlen(pipe_buffer), i = 0; i < len; ++i)
 		pipe_buffer[i] = '\0';
-
+	
 	int command_idx = valid_command(command);
-
-	if (command_idx == 4)
-		printf("%s\n", command);
 
 	if (command_idx == -1) {
 		//need to check if we need to run a program 
