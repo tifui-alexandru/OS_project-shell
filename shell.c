@@ -150,6 +150,7 @@ HistoryLine first_line, last_line;
 HistoryLine get_new_line() {
 	HistoryLine line = (HistoryLine)malloc((sizeof(struct History)));
 	memset(line->command, 0, sizeof(line->command));
+	line->next_line = NULL;
 	return line;
 }
 
@@ -875,7 +876,7 @@ void read_input(char* input) {
 	system ("/bin/stty cooked");
 	*/
 
-	char* temp=readline("$ ");
+	char* temp=readline("\n$ ");
 
 
 	if (strlen(temp) > 0){
