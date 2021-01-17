@@ -49,7 +49,6 @@ struct Trie {
 	int min_arg, max_arg;
 };
 
-// #define children (children + 128) // so that one can access children[-128]
 typedef struct Trie* TrieNode;
 
 TrieNode get_new_node() {
@@ -107,7 +106,7 @@ int valid_command(char* str) {
 	int command_min_arg, command_max_arg;
 	int idx_command = search(token, &command_min_arg, &command_max_arg);
 
-	if (idx_command == -1){
+	if (idx_command == -1) {
 		strcpy(str, str_copy);
 		free(str_copy);
 		return -1;
@@ -182,7 +181,7 @@ void print_history() {
 // no special char found -1
 //if a special char is found, it returns pos * 10 + type
 // type is 1 for ||, 2 for &&, 3 for <, 4 for >, 5 for |
-int token_str(char* str){
+int token_str(char* str) {
 	char* next_char;
 	int difference;
 	for (next_char = str; *next_char != '\0' 
@@ -229,7 +228,7 @@ void trim(char* str) {
 	str = str + start;
 }
 
-void copy_str(char* dest, char* src, int length){
+void copy_str(char* dest, char* src, int length) {
 	//experimental
 	//trim front and back spaces
 
@@ -248,14 +247,14 @@ void copy_str(char* dest, char* src, int length){
 }
 
 //returns if it can find the first word in src
-bool get_command_name(char* dest, char* src){
+bool get_command_name(char* dest, char* src) {
 
 	int dest_index, src_index, src_size;
 	dest_index = 0;
 	src_index = 0;
 	src_size = strlen(src);
 	
-	for (src_index = 0; src[src_index] == ' ' && src_index < src_size; ++src_index){}
+	for (src_index = 0; src[src_index] == ' ' && src_index < src_size; ++src_index) {}
 	
 	if (src_index == src_size)
 		return false;
@@ -269,7 +268,7 @@ bool get_command_name(char* dest, char* src){
 	return true;
 }
 
-int get_arguments(char** arguments, char* command){
+int get_arguments(char** arguments, char* command) {
 	int command_ptr = 0;
 	int command_size = strlen(command);
 	int args_counter = -1;
@@ -282,7 +281,7 @@ int get_arguments(char** arguments, char* command){
 	while (command[command_ptr] == ' ' && command_ptr < command_size)
 		++command_ptr;
 
-	while (command_ptr < command_size){
+	while (command_ptr < command_size) {
 		int arg_ptr = -1;
 		args_counter++;
 		//remove the beginning spaces
@@ -291,7 +290,7 @@ int get_arguments(char** arguments, char* command){
 		if (command_ptr == command_size)
 			break;
 		
-		if (command[command_ptr] == '"'){
+		if (command[command_ptr] == '"') {
 			++command_ptr;
 			while (command[command_ptr] != '"' && command_ptr < command_size)
 			{
@@ -300,7 +299,7 @@ int get_arguments(char** arguments, char* command){
 				command_ptr++;
 			}
 			//the argument is invalid, so arguments must be empty
-			if (command_ptr == command_size){
+			if (command_ptr == command_size) {
 				arguments[0][0] = '\0';
 				return -1;
 			}
@@ -309,7 +308,7 @@ int get_arguments(char** arguments, char* command){
 			continue;
 		}
 
-		while (command[command_ptr] != ' ' && command_ptr < command_size){
+		while (command[command_ptr] != ' ' && command_ptr < command_size) {
 			arg_ptr ++;
 			arguments[args_counter][arg_ptr] = command[command_ptr];
 			command_ptr ++;
@@ -321,15 +320,14 @@ int get_arguments(char** arguments, char* command){
 	return args_counter + 1;
 }
 
-char** create_arguments_matrix()
-{
+char** create_arguments_matrix() {
 	char** arguments;
 	arguments = malloc(MAX_NUMBER_ARGUMENTS * sizeof(*arguments));
 
 	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++)
 		arguments[i] = malloc(MAX_INPUT_LENGTH * sizeof(*(arguments[i])));
 	
-	for (int i = 0 ;i < MAX_NUMBER_ARGUMENTS; ++i){
+	for (int i = 0 ;i < MAX_NUMBER_ARGUMENTS; ++i) {
 		for (int j = 0; j < MAX_INPUT_LENGTH; ++j)
 			arguments[i][j] = '\0';
 	}
@@ -337,9 +335,8 @@ char** create_arguments_matrix()
 	return arguments;
 }
 
-void free_arguments_matrix(char** arguments)
-{
-	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++){
+void free_arguments_matrix(char** arguments) {
+	for (int i = 0; i < MAX_NUMBER_ARGUMENTS; i++) {
 		if (arguments[i] != NULL)
 			free(arguments[i]);
 	}
@@ -354,7 +351,6 @@ void free_arguments_matrix(char** arguments)
 
 // write the current path in the commandline
 void print_curr_dir() {
-
 	if (getcwd(cwd, sizeof(cwd))) 
 		printf("%s", cwd);
 	else 
@@ -462,7 +458,7 @@ void funct_grep(char** args) {
 
 		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
 			if(strstr(chunk, args[0])) {
-				if(stdout_redirect){
+				if(stdout_redirect) {
 					if (!single_arg)
 						printf("%s: ", args[i]);
 
@@ -516,7 +512,7 @@ void funct_grep(char** args) {
 void funct_cd(char** args) {
 	exit_status = 1;
 
-	if (chdir(args[0]) != 0){
+	if (chdir(args[0]) != 0) {
 		perror("Error cd");
 		return;
 	}
@@ -525,29 +521,30 @@ void funct_cd(char** args) {
 }
 
 void funct_mv(char** args) {
+	exit_status = 1;
 
 	char* src = args[0];
 	char* dst = args[1];
     FILE *f_read, *f_write;
 
     f_read = fopen(src, "r"); 
-    if(f_read == NULL){
-		printf("Source file does not exist.\n"); 
+    if(f_read == NULL) {
+		perror("Source file does not exist.\n"); 
 		return;
 	}
 
     f_write = fopen(dst, "ab+"); 
     fclose(f_write);
 
-    f_write = fopen(dst, "w+"); //deschid pt scris
-    if(f_write == NULL){
-        printf("Error while creating destination file.\n");
+    f_write = fopen(dst, "w+");
+    if(f_write == NULL) {
+        perror("Error while creating destination file.\n");
         fclose(f_read); 
 		return;
     }
 
-    if(open(dst, O_WRONLY)<0 || open(src, O_RDONLY)<0){
-		printf("An error occured"); 
+    if(open(dst, O_WRONLY)<0 || open(src, O_RDONLY)<0) {
+		perror("An error occured"); 
 		return;
 	}
 
@@ -558,28 +555,30 @@ void funct_mv(char** args) {
 	fclose(f_write);
 
 	int fd = open(args[0], O_RDONLY);
-	if (fd < 0){
-		printf("File does not exist");
+	if (fd < 0) {
+		perror("File does not exist");
 		return;
 	}
 	close(fd);
 
-	if (unlink(args[0])){
-		printf("An error occured while deleting the file\n");
+	if (unlink(args[0])) {
+		perror("An error occured while deleting the file\n");
 		return;
 	}
 	
+	exit_status = 0;
 }
 
 void funct_cp(char** args) {
+	exit_status = 1;
 
 	char* src = args[0];
 	char* dst = args[1];
     FILE *f_read, *f_write;
 
     f_read = fopen(src, "r"); 
-    if(f_read == NULL){
-		printf("Source file does not exist.\n"); 
+    if(f_read == NULL) {
+		perror("Source file does not exist.\n"); 
 		return;
 	}
 
@@ -587,14 +586,14 @@ void funct_cp(char** args) {
     fclose(f_write);
 
     f_write = fopen(dst, "w+"); //deschid pt scris
-    if(f_write == NULL){
-        printf("Error while creating destination file.\n");
+    if(f_write == NULL) {
+        perror("Error while creating destination file.\n");
         fclose(f_read); 
 		return;
     }
 
-    if(open(dst, O_WRONLY)<0 || open(src, O_RDONLY)<0){
-		printf("An error occured"); 
+    if(open(dst, O_WRONLY)<0 || open(src, O_RDONLY)<0) {
+		perror("An error occured"); 
 		return;
 	}
 
@@ -603,21 +602,23 @@ void funct_cp(char** args) {
 
     fclose(f_read); 
 	fclose(f_write);
+
+	exit_status = 0;
 }
 
-void funct_rm(char** args){
+void funct_rm(char** args) {
 	exit_status = 1;
 
 	int fd;
 	fd = open(args[0], O_RDONLY);
-	if (fd < 0){
-		printf("File does not exist");
+	if (fd < 0) {
+		perror("File does not exist");
 		return;
 	}
 	close(fd);
 
-	if (unlink(args[0])){
-		printf("An error occured while deleting the file\n");
+	if (unlink(args[0])) {
+		perror("An error occured while deleting the file\n");
 		return;
 	}
 	
@@ -625,21 +626,21 @@ void funct_rm(char** args){
 	return;
 }
 
-void funct_rmdir(char** args){
+void funct_rmdir(char** args) {
 	exit_status = 1;
 
 	DIR* dir = opendir(args[0]);
-	if (dir){
+	if (dir) {
 		//it exists
 		closedir(dir);
 		rmdir(args[0]);
 	}
-	else if (ENONET == errno){
-		printf("Directory does not exits\n");
+	else if (ENONET == errno) {
+		perror("Directory does not exits\n");
 		return;
 	}
-	else{
-		printf("An error occured\n");
+	else {
+		perror("An error occured\n");
 		return;
 	}
 
@@ -688,18 +689,18 @@ void funct_cat(char** args) {
 	exit_status = 0;
 }
 
-char* get_absolute_path(char* command_path){
+char* get_absolute_path(char* command_path) {
 
 	char* new_path = malloc(MAX_INPUT_LENGTH*sizeof(*new_path));
 	new_path[0] = '\0';
 
-	if (command_path[0] == '.'){
+	if (command_path[0] == '.') {
 		strcpy(new_path, cwd);
 		strcat(new_path, (command_path + 1));
 		free(command_path);
 		return new_path;
 	}
-	else{
+	else {
 		free(new_path);
 		return command_path;
 	}
@@ -715,7 +716,7 @@ void sig_handler(int sig_num)
 		kill(pid,SIGKILL);
     	pid = -1;
     }
-	else{
+	else {
 		printf("\n");
 		printf("%s$ ", cwd);
 	}
@@ -725,7 +726,7 @@ void sig_handler(int sig_num)
 
 
 
-void exec_command(char* command){
+void exec_command(char* command) {
 	char* command_path = malloc(MAX_INPUT_LENGTH * sizeof(*command_path));
 	char** args = create_arguments_matrix();;
 	int args_counter = 0;
@@ -736,10 +737,10 @@ void exec_command(char* command){
 	args_counter = get_arguments(args, command);
 
 	//we need to change the structure of arguments
-	for (int i = args_counter; i >= 1; --i){
+	for (int i = args_counter; i >= 1; --i) {
 		strcpy(args[args_counter], args[args_counter - 1]);
 	}
-	for (int i = args_counter + 1; i < MAX_NUMBER_ARGUMENTS; ++i){
+	for (int i = args_counter + 1; i < MAX_NUMBER_ARGUMENTS; ++i) {
 		free(args[i]);
 		args[i] = NULL;
 	}
@@ -748,18 +749,18 @@ void exec_command(char* command){
 
 	pid = 0;
 	pid = fork();
-	if (pid < 0){
+	if (pid < 0) {
 		perror("Error while forking\n");
 		free(command_path);
 		free_arguments_matrix(args);
 		return;
 	}
-	else if (pid == 0){
+	else if (pid == 0) {
 		execve(command_path, args, NULL);
 		perror(NULL);
 		exit(0);
 	}
-	else if (pid > 0){
+	else if (pid > 0) {
 		wait(NULL);
 		//the process is dead 
 		pid = -1;
@@ -769,7 +770,7 @@ void exec_command(char* command){
 
 }
 
-void find_command(char* command){
+void find_command(char* command) {
 	if (stdin_redirect) {
 		strcat(command, " \0");
 		strcat(command, stdin_buffer);
@@ -784,7 +785,7 @@ void find_command(char* command){
 			exec_command(command);
 		else if (strcmp(command, "exit") == 0)
 			kill_signal = 1;
-		else{
+		else {
 			exit_status = 1;
 			printf("Invalid command\n");
 		}
@@ -849,37 +850,14 @@ void read_input(char* input) {
 		return;
 
 	//to be able to read char by char and not put stdin in a buffer
-	
-
-	//printf("$ ");
 	char * command = malloc(MAX_INPUT_LENGTH*sizeof(*command));
-	//char * temp = malloc(MAX_INPUT_LENGTH*sizeof(*temp));
 	int temp_index = -1;
 	char c;
-
-	/*
-	system ("/bin/stty raw");
-	while ((int)(c = getc(stdin)) != 13)
-	{
-		temp_index++;
-		
-		if ((int) c == 27)
-		{
-			printf("comanda sus");
-		}
-		temp[temp_index] = c;
-		
-	}
-	++temp_index;
-	temp[temp_index] = '\0';
-	//revert changes
-	system ("/bin/stty cooked");
-	*/
 
 	char* temp=readline("\n$ ");
 
 
-	if (strlen(temp) > 0){
+	if (strlen(temp) > 0) {
         add_history(temp);
 		strcpy(input, temp);
     }
@@ -893,31 +871,20 @@ void read_input(char* input) {
 
 	char chunk[MAX_INPUT_LENGTH + 10];
 
-	while (token >= 0)
-	{
+	while (token >= 0) {
 		if (kill_signal)
 			return;
 		token = token_str(input_ptr);
 
-		if (token == -1)
-		{
+		if (token == -1) {
 			copy_str(command, input_ptr, strlen(input_ptr));
-			//printf("strlen %d\n", strlen(input_ptr));
-			//printf("big command %s\n", input_ptr);
-			//printf("command %s \n", command);
-
 			find_command(command);
-			//find what command is and call it.
-
 			break;
 		}
-		else if (token == -2)
-		{
+		else if (token == -2) {
 			printf("Invalid command\n");
-			//invalid command
 		}
-		else 
-		{
+		else {
 			//read the command before a separator
 			type = token % 10;
 			token = token / 10;
@@ -925,30 +892,30 @@ void read_input(char* input) {
 			input_ptr += token;
 			
 			// ||
-			if (type == 1){
+			if (type == 1) {
 				//call the function 
 				find_command(command);
 				
-				if (exit_status == 0){
+				if (exit_status == 0) {
 					flag = false;
 					break;
 				}
 				input_ptr += 2;
 			}
 			// &&
-			else if (type == 2){
+			else if (type == 2) {
 				
 				
 				find_command(command);
 				
-				if (exit_status != 0){
+				if (exit_status != 0) {
 					flag = false;
 					break;
 				}
 				input_ptr += 2;
 			}
 			// <
-			else if (type == 3){
+			else if (type == 3) {
 				char* file_name = malloc(MAX_INPUT_LENGTH * sizeof(*file_name));
 
 				++input_ptr;
@@ -971,10 +938,7 @@ void read_input(char* input) {
 					break; 			
 			}
 			// >
-			else if (type == 4){
-
-				//copy_str(command, input_ptr, token / 10);
-
+			else if (type == 4) {
 				char* file_name = malloc(MAX_INPUT_LENGTH * sizeof(*file_name));
 
 				++input_ptr;
@@ -1003,7 +967,7 @@ void read_input(char* input) {
 					break; 
 			}
 			// |
-			else if (type == 5){
+			else if (type == 5) {
 				// redirect stdout to file
 				stdout_redirect = true;
 				strcpy(stdout_buffer, pipe_buffer);
@@ -1034,9 +998,7 @@ void read_input(char* input) {
 	if (flag == true)
 		add_command_to_history(command);
 
-	//free(temp);
 	free(command);
-
 }
 
 // store the possible commands
@@ -1072,12 +1034,12 @@ void populate_trie() {
 // initialize everything before starting the program
 void init() {
 	populate_trie();
+	// pipe buffer has to be hidden
 	strcpy(pipe_buffer, ".pipe_buffer.txt\0");
+	signal(SIGINT, sig_handler);
 }
 
 int main() {
-	signal(SIGINT, sig_handler);
-	
 	init();
 	char input[MAX_INPUT_LENGTH];
 	while(true) {
@@ -1086,7 +1048,6 @@ int main() {
 		print_curr_dir();
 		read_input(input);
 	}
-
 
 	return 0;
 }
