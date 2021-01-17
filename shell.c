@@ -33,13 +33,13 @@
 
 char cwd[MAX_PATH_LENGTH];
 char commands_history[MAX_COMMANDS_HISTORY][MAX_INPUT_LENGTH];
-char pipe_buffer[MAX_COMMANDS_HISTORY];
-int exit_status, kill_signal = 0, copy_in_buffer = 0;
+char stdin_buffer[MAX_INPUT_LENGTH];
+char stdout_buffer[MAX_INPUT_LENGTH];
+char pipe_buffer[MAX_INPUT_LENGTH];
+int exit_status, kill_signal = 0;
+bool stdin_redirect = false, stdout_redirect = false;
 pid_t pid = -1;
 static volatile int keepRunning = 1;
-
-// has to be hidden
-char* buffer_file_for_pipe = ".buffer.txt";
 
 
 // trie implementation
@@ -100,7 +100,7 @@ int valid_command(char* str) {
 	if (str == NULL || str == "")
 		return false;
 
-	char* str_copy = malloc(strlen(str) * sizeof(*str_copy));
+	char* str_copy = malloc(MAX_INPUT_LENGTH * sizeof(*str_copy));
 	strcpy(str_copy, str);
 
 	char* token = strtok(str, " \n");
@@ -372,7 +372,8 @@ void funct_ls(char** args) {
 		perror("Error ls");
 		return;
 	}
-	if (copy_in_buffer){
+
+	if (stdout_redirect) {
 		for (int i = 0; i < no_files; ++i) {
 			if (namelist[i]->d_name[0] != '.') {
 				if (namelist[i]->d_type == DT_REG)
@@ -384,7 +385,7 @@ void funct_ls(char** args) {
 			}
 		}
 	}
-	else{
+	else {
 		for (int i = 0; i < no_files; ++i) {
 			if (namelist[i]->d_name[0] != '.') {
 				if (namelist[i]->d_type == DT_REG)
@@ -460,7 +461,7 @@ void funct_grep(char** args) {
 
 		while(fgets(chunk, sizeof(chunk), fin) != NULL) {
 			if(strstr(chunk, args[0])) {
-				if(copy_in_buffer){
+				if(stdout_redirect){
 					if (!single_arg)
 						printf("%s: ", args[i]);
 
@@ -768,11 +769,12 @@ void exec_command(char* command){
 }
 
 void find_command(char* command){
-	// get pipe arguments if any and clear the buffer
-	strcat(command, pipe_buffer);
-	for (int len = strlen(pipe_buffer), i = 0; i < len; ++i)
-		pipe_buffer[i] = '\0';
-	
+	if (stdin_redirect) {
+		strcat(command, " \0");
+		strcat(command, stdin_buffer);
+		stdin_redirect = false;
+	}
+
 	int command_idx = valid_command(command);
 
 	if (command_idx == -1) {
@@ -955,20 +957,8 @@ void read_input(char* input) {
 
 				copy_str(file_name, input_ptr, token / 10);
 
-				// get the arguments from the file
-				FILE* fin = fopen(file_name, "r");
-				if (fin == NULL) {
-					perror("Invalid command");
-					return;
-				}
-
-				while(fgets(chunk, sizeof(chunk), fin) != NULL) {
-					trim(chunk);
-			        strcat(command, " \0");
-			        strcat(command, chunk);
-			    }
-
-				fclose(fin);
+				stdin_redirect = true;
+				strcpy(stdin_buffer, file_name);
 
 				find_command(command);
 
@@ -994,12 +984,15 @@ void read_input(char* input) {
 				copy_str(file_name, input_ptr, token / 10);
 
 				// redirect stdout to file
-				freopen(file_name, "a+", stdout); 
+				stdout_redirect = true;
+				strcpy(stdout_buffer, file_name);
+				freopen(stdout_buffer, "w", stdout); 
 				
 				find_command(command);
 
 				// restore stdout
-				freopen("/dev/tty", "w", stdout); 
+				stdout_redirect = false; 
+				freopen("/dev/tty", "w", stdout);
 				
 				free(file_name);
 
@@ -1011,14 +1004,15 @@ void read_input(char* input) {
 			// |
 			else if (type == 5){
 				// redirect stdout to file
-				copy_in_buffer = 1;
-				freopen(buffer_file_for_pipe, "w", stdout); 
+				stdout_redirect = true;
+				strcpy(stdout_buffer, pipe_buffer);
+				freopen(stdout_buffer, "w", stdout); 
 				
 				find_command(command);
 
 				// restore stdout
+				stdout_redirect = false;
 				freopen("/dev/tty", "w", stdout); 
-				copy_in_buffer = 0;
 				
 				if (exit_status == 1) {
 					perror("Invalid Commnad");
@@ -1026,14 +1020,8 @@ void read_input(char* input) {
 					break;
 				}
 
-				FILE* fin = fopen(buffer_file_for_pipe, "r");
-				while(fgets(chunk, sizeof(chunk), fin) != NULL) {
-					trim(chunk);
-			        strcat(pipe_buffer, " \0");
-			        strcat(pipe_buffer, chunk);
-			    }
-
-			    fclose(fin);
+				stdin_redirect = true;
+				strcpy(stdin_buffer, pipe_buffer);
 
 				++input_ptr;
 			}
@@ -1049,15 +1037,6 @@ void read_input(char* input) {
 	free(command);
 
 }
-
-
-enum CommandType {
-	logic_expression,
-	pipe_line,
-	redirect_io,
-	regular
-};
-
 
 // store the possible commands
 void populate_trie() {
@@ -1092,6 +1071,7 @@ void populate_trie() {
 // initialize everything before starting the program
 void init() {
 	populate_trie();
+	strcpy(pipe_buffer, ".pipe_buffer.txt\0");
 }
 
 int main() {

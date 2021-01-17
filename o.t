@@ -1,0 +1,14 @@
+a.out
+a.txt
+commands3.txt
+commands.txt
+ex.txt
+lala.txt
+l.in
+model_shell.c
+o.t
+run.sh
+shell
+shell.c
+test
+test.c
