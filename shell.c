@@ -1,3 +1,8 @@
+// Tifui Ioan Alexandru
+// Savu Ioan Daniel
+// Gr 234
+
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
